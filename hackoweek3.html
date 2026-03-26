@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Le Château - Fine Dining</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&amp;family=Montserrat:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+   
+    .font-cormorant { font-family: 'Cormorant Garamond', serif; }
+    .font-montserrat { font-family: 'Montserrat', sans-serif; }
+   
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+   
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+   
+    @keyframes shimmer {
+      0% { background-position: -1000px 0; }
+      100% { background-position: 1000px 0; }
+    }
+   
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+   
+    .animate-fade-in-up {
+      animation: fadeInUp 0.8s ease-out forwards;
+      opacity: 0;
+    }
+   
+    .animate-fade-in {
+      animation: fadeIn 1s ease-out forwards;
+    }
+   
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+   
+    .gold-shimmer {
+      background: linear-gradient(
+        90deg,
+        #d4af37 0%,
+        #f4e5c3 50%,
+        #d4af37 100%
+      );
+      background-size: 1000px 100%;
+      animation: shimmer 3s linear infinite;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+   
+    .menu-item {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+   
+    .menu-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -20px;
+      width: 3px;
+      height: 0;
+      background: linear-gradient(to bottom, #d4af37, #f4e5c3);
+      transition: height 0.4s ease;
+    }
+   
+    .menu-item:hover::before {
+      height: 100%;
+    }
+   
+    .menu-item:hover {
+      transform: translateX(10px);
+      background: rgba(212, 175, 55, 0.05);
+    }
+   
+    .divider-ornament {
+      position: relative;
+      text-align: center;
+      margin: 3rem 0;
+    }
+   
+    .divider-ornament::before,
+    .divider-ornament::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 45%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #d4af37, transparent);
+    }
+   
+    .divider-ornament::before { left: 0; }
+    .divider-ornament::after { right: 0; }
+   
+    .course-card {
+      backdrop-filter: blur(10px);
+      transition: all 0.5s ease;
+    }
+   
+    .course-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
+    }
+   
+    .wine-pairing {
+      position: relative;
+      overflow: hidden;
+    }
+   
+    .wine-pairing::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+   
+    .wine-pairing:hover::after {
+      left: 100%;
+    }
+   
+    .reserve-btn {
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+   
+    .reserve-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+      z-index: -1;
+    }
+   
+    .reserve-btn:hover::before {
+      left: 100%;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full font-montserrat overflow-auto" style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1410 50%, #0a0a0a 100%);">
+  <div id="app-wrapper" class="min-h-full w-full"><!-- Hero Section -->
+   <header class="relative py-20 px-4 overflow-hidden"><!-- Subtle pattern overlay -->
+    <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle, #d4af37 1px, transparent 1px); background-size: 50px 50px;"></div>
+    <div class="max-w-6xl mx-auto text-center relative z-10">
+     <div class="animate-fade-in-up" style="animation-delay: 0.2s;">
+      <div class="inline-block mb-6">
+       <svg width="60" height="60" viewbox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="animate-float"><path d="M30 5L35 20L50 20L38 30L43 45L30 37L17 45L22 30L10 20L25 20L30 5Z" fill="#d4af37" opacity="0.8" /> <circle cx="30" cy="30" r="28" stroke="#d4af37" stroke-width="0.5" opacity="0.3" />
+       </svg>
+      </div>
+     </div>
+     <h1 id="restaurant-name" class="font-cormorant text-7xl md:text-8xl font-light mb-4 tracking-wider animate-fade-in-up gold-shimmer" style="animation-delay: 0.3s;">Le Château</h1>
+     <div class="divider-ornament animate-fade-in" style="animation-delay: 0.5s;"><span class="text-2xl" style="color: #d4af37;">✦</span>
+     </div>
+     <p id="tagline" class="font-montserrat text-xl md:text-2xl text-gray-300 font-light tracking-widest mb-8 animate-fade-in-up" style="animation-delay: 0.6s;">EXQUISITE FRENCH CUISINE</p>
+     <p class="text-gray-400 max-w-2xl mx-auto leading-relaxed mb-10 animate-fade-in-up" style="animation-delay: 0.7s;">Experience the artistry of haute cuisine in an atmosphere of refined elegance. Our Michelin-starred chef crafts each dish with passion and precision.</p><button id="reserve-button" class="reserve-btn bg-gradient-to-r from-yellow-700 to-yellow-600 text-white px-10 py-4 font-montserrat tracking-wider text-sm hover:from-yellow-600 hover:to-yellow-500 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0.8s;"> RESERVE YOUR TABLE </button>
+    </div>
+   </header>
+   <main class="max-w-6xl mx-auto px-4 py-12"><!-- Appetizers -->
+    <section class="mb-20">
+     <div class="text-center mb-12">
+      <h2 class="font-cormorant text-5xl md:text-6xl font-light mb-3" style="color: #d4af37;">Les Entrées</h2>
+      <p class="text-gray-400 font-light tracking-wider text-sm">STARTERS</p>
+     </div>
+     <div class="space-y-8">
+      <div class="menu-item p-6 rounded-lg">
+       <div class="flex justify-between items-start mb-3">
+        <div class="flex-1">
+         <h3 class="font-cormorant text-3xl font-medium text-gray-100 mb-2">Foie Gras Terrine</h3>
+         <p class="text-gray-400 text-sm leading-relaxed">Seared Hudson Valley foie gras, fig compote, brioche, aged balsamic reduction</p>
+        </div><span class="font-cormorant text-2xl ml-6" style="color: #d4af37;">₹3,200</span>
+       </div>
+       <div class="wine-pairing pl-4 border-l border-gray-700 mt-3">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Wine Pairing</p>
+        <p class="text-sm text-gray-400 italic">Sauternes, Château d'Yquem 2015</p>
+       </div>
+      </div>
+      <div class="menu-item p-6 rounded-lg">
+       <div class="flex justify-between items-start mb-3">
+        <div class="flex-1">
+         <h3 class="font-cormorant text-3xl font-medium text-gray-100 mb-2">Oysters Rockefeller</h3>
+         <p class="text-gray-400 text-sm leading-relaxed">Six East Coast oysters, spinach, Pernod, hollandaise, sea salt crystals</p>
+        </div><span class="font-cormorant text-2xl ml-6" style="color: #d4af37;">₹3,500</span>
+       </div>
+       <div class="wine-pairing pl-4 border-l border-gray-700 mt-3">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Wine Pairing</p>
+        <p class="text-sm text-gray-400 italic">Champagne, Dom Pérignon 2012</p>
+       </div>
+      </div>
+      <div class="menu-item p-6 rounded-lg">
+       <div class="flex justify-between items-start mb-3">
+        <div class="flex-1">
+         <h3 class="font-cormorant text-3xl font-medium text-gray-100 mb-2">Escargots de Bourgogne</h3>
+         <p class="text-gray-400 text-sm leading-relaxed">Burgundy snails, garlic-parsley butter, puff pastry, micro herbs</p>
+        </div><span class="font-cormorant text-2xl ml-6" style="color: #d4af37;">₹2,700</span>
+       </div>
+       <div class="wine-pairing pl-4 border-l border-gray-700 mt-3">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Wine Pairing</p>
+        <p class="text-sm text-gray-400 italic">Chablis Grand Cru, William Fèvre 2018</p>
+       </div>
+      </div>
+      <div class="menu-item p-6 rounded-lg">
+       <div class="flex justify-between items-start mb-3">
+        <div class="flex-1">
+         <h3 class="font-cormorant text-3xl font-medium text-gray-100 mb-2">Lobster Bisque</h3>
+         <p class="text-gray-400 text-sm leading-relaxed">Maine lobster, cognac, crème fraîche, chive oil, black truffle shavings</p>
+        </div><span class="font-cormorant text-2xl ml-6" style="color: #d4af37;">₹3,000</span>
+       </div>
+       <div class="wine-pairing pl-4 border-l border-gray-700 mt-3">
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Wine Pairing</p>
+        <p class="text-sm text-gray-400 italic">Meursault Premier Cru 2017</p>
+       </div>
+      </div>
+     </div>
+    </section>
+    <div class="divider-ornament my-16"><span class="text-3xl" style="color: #d4af37;">❖</span>
+    </div><!-- Main Courses -->
+    <section class="mb-20">
+     <div class="text-center mb-12">
+      <h2 class="font-cormorant text-5xl md:text-6xl font-light mb-3" style="color: #d4af37;">Les Plats Principaux</h2>
+      <p class="text-gray-400 font-light tracking-wider text-sm">MAIN COURSES</p>
+     </div>
+     <div class="grid md:grid-cols-2 gap-8">
+      <div class="course-card bg-gradient-to-br from-gray-900/40 to-gray-800/40 border border-gray-800 rounded-lg overflow-hidden"><img src="https://images.unsplash.com/photo-1558030006-450675393462?w=600&amp;h=400&amp;fit=crop" alt="Beef Wellington" loading="lazy" onerror="console.error('Image failed to load:', this.src); this.style.background='#1a1410'; this.alt='Beef Wellington dish';" class="w-full h-48 object-cover">
+       <div class="p-8">
+        <h3 class="font-cormorant text-3xl font-medium text-gray-100 mb-3 text-center">Beef Wellington</h3>
+        <p class="text-gray-400 text-sm leading-relaxed mb-4 text-center">Prime filet mignon, mushroom duxelles, prosciutto, puff pastry, red wine reduction</p>
+        <div class="text-center mb-4"><span class="font-cormorant text-3xl" style="color: #d4af37;">₹6,500</span>
+        </div>
+        <div class="wine-pairing p-3 bg-black/20 rounded">
+         <p class="text-xs text-gray-500 uppercase tracking-wider mb-1 text-center">Wine Pairing</p>
+         <p class="text-sm text-gray-400 italic text-center">Bordeaux, Château Margaux 2016</p>
+        </div>
+       </div>
+      </div>
+      <div class="course-card bg-gradient-to-br from-gray-900/40 to-gray-800/40 border border-gray-800 rounded-lg overflow-hidden"><img src="https://images.unsplash.com/photo-1633237308525-cd587cf71926?w=600&amp;h=400&amp;fit=crop" alt="Lobster Thermidor" loading="lazy" onerror="console.error('Image failed to load:', this.src); this.style.background='#1a1410'; this.alt='Lobster dish';" class="w-full h-48 object-cover">
+       <div class="p-8">
+        <h3 class="font-cormorant text-3xl font-medium text-gray-100 mb-3 text-center">Lobster Thermidor</h3>
+        <p class="text-gray-400 text-sm leading-relaxed mb-4 text-center">Whole Maine lobster, cognac cream sauce, gruyère, tarragon, truffle butter</p>
+        <div class="text-center mb-4"><span class="font-cormorant text-3xl" style="color: #d4af37;">₹7,700</span>
+        </div>
+        <div class="wine-pairing p-3 bg-black/20 rounded">
+         <p class="text-xs text-gray-500 uppercase tracking-wider mb-1 text-center">Wine Pairing</p>
+         <p class="text-sm text-gray-400 italic text-center">Puligny-Montrachet Premier Cru 2018</p>
+        </div>
+       </div>
+      </div>
+      <div class="course-card bg-gradient-to-br from-gray-900/40 to-gray-800/40 border border-gray-800 rounded-lg overflow-hidden"><img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=600&amp;h=400&amp;fit=crop" alt="Duck à l'Orange" loading="lazy" onerror="console.error('Image failed to load:', this.src); this.style.background='#1a1410'; this.alt='Duck dish';" class="w-full h-48 object-cover">
+       <div class="p-8">
+        <h3 class="font-cormorant text-3xl font-medium text-gray-100 mb-3 text-center">Duck à l'Orange</h3>
+        <p class="text-gray-400 text-sm leading-relaxed mb-4 text-center">Roasted duck breast, orange gastrique, Grand Marnier, candied orange, endive</p>
+        <div class="text-center mb-4"><span class="font-cormorant text-3xl" style="color: #d4af37;">₹5,700</span>
+        </div>
+        <div class="wine-pairing p-3 bg-black/20 rounded">
+         <p class="text-xs text-gray-500 uppercase tracking-wider mb-1 text-center">Wine Pairing</p>
+         <p class="text-sm text-gray-400 italic text-center">Châteauneuf-du-Pape 2017</p>
+        </div>
+       </div>
+      </div>
+      <div class="course-card bg-gradient-to-br from-gray-900/40 to-gray-800/40 border border-gray-800 rounded-lg overflow-hidden"><img src="https://images.unsplash.com/photo-1580959375944-0b6e7f9d0c05?w=600&amp;h=400&amp;fit=crop" alt="Dover Sole Meunière" loading="lazy" onerror="console.error('Image failed to load:', this.src); this.style.background='#1a1410'; this.alt='Fish dish';" class="w-full h-48 object-cover">
+       <div class="p-8">
+        <h3 class="font-cormorant text-3xl font-medium text-gray-100 mb-3 text-center">Dover Sole Meunière</h3>
+        <p class="text-gray-400 text-sm leading-relaxed mb-4 text-center">Whole Dover sole, brown butter, lemon, capers, parsley, pommes dauphine</p>
+        <div class="text-center mb-4"><span class="font-cormorant text-3xl" style="color: #d4af37;">₹6,000</span>
+        </div>
+        <div class="wine-pairing p-3 bg-black/20 rounded">
+         <p class="text-xs text-gray-500 uppercase tracking-wider mb-1 text-center">Wine Pairing</p>
+         <p class="text-sm text-gray-400 italic text-center">Sancerre, Domaine Vacheron 2019</p>
+        </div>
+       </div>
+      </div>
+      <div class="course-card bg-gradient-to-br from-gray-900/40 to-gray-800/40 border border-gray-800 rounded-lg overflow-hidden"><img src="https://images.unsplash.com/photo-1476124369491-b79c29b8c6e0?w=600&amp;h=400&amp;fit=crop" alt="Truffle Risotto" loading="lazy" onerror="console.error('Image failed to load:', this.src); this.style.background='#1a1410'; this.alt='Risotto dish';" class="w-full h-48 object-cover">
+       <div class="p-8">
+        <h3 class="font-cormorant text-3xl font-medium text-gray-100 mb-3 text-center">Truffle Risotto</h3>
+        <p class="text-gray-400 text-sm leading-relaxed mb-4 text-center">Carnaroli rice, black truffle, parmigiano reggiano, white truffle oil, wild mushrooms</p>
+        <div class="text-center mb-4"><span class="font-cormorant text-3xl" style="color: #d4af37;">₹4,800</span>
+        </div>
+        <div class="wine-pairing p-3 bg-black/20 rounded">
+         <p class="text-xs text-gray-500 uppercase tracking-wider mb-1 text-center">Wine Pairing</p>
+         <p class="text-sm text-gray-400 italic text-center">Barolo, Giacomo Conterno 2016</p>
+        </div>
+       </div>
+      </div>
+      <div class="course-card bg-gradient-to-br from-gray-900/40 to-gray-800/40 border border-gray-800 rounded-lg overflow-hidden"><img src="https://images.unsplash.com/photo-1574484284002-952d92456975?w=600&amp;h=400&amp;fit=crop" alt="Rack of Lamb" loading="lazy" onerror="console.error('Image failed to load:', this.src); this.style.background='#1a1410'; this.alt='Lamb dish';" class="w-full h-48 object-cover">
+       <div class="p-8">
+        <h3 class="font-cormorant text-3xl font-medium text-gray-100 mb-3 text-center">Rack of Lamb</h3>
+        <p class="text-gray-400 text-sm leading-relaxed mb-4 text-center">Colorado lamb, herb crust, rosemary jus, ratatouille, potato gratin</p>
+        <div class="text-center mb-4"><span class="font-cormorant text-3xl" style="color: #d4af37;">₹6,900</span>
+        </div>
+        <div class="wine-pairing p-3 bg-black/20 rounded">
+         <p class="text-xs text-gray-500 uppercase tracking-wider mb-1 text-center">Wine Pairing</p>
+         <p class="text-sm text-gray-400 italic text-center">Côte-Rôtie, E. Guigal 2017</p>
+        </div>
+       </div>
+      </div>
+     </div>
+    </section>
+    <div class="divider-ornament my-16"><span class="text-3xl" style="color: #d4af37;">❖</span>
+    </div><!-- Desserts -->
+    <section class="mb-20">
+     <div class="text-center mb-12">
+      <h2 class="font-cormorant text-5xl md:text-6xl font-light mb-3" style="color: #d4af37;">Les Desserts</h2>
+      <p class="text-gray-400 font-light tracking-wider text-sm">SWEET FINALES</p>
+     </div>
+     <div class="grid md:grid-cols-3 gap-6">
+      <div class="course-card bg-gradient-to-br from-gray-900/40 to-gray-800/40 border border-gray-800 rounded-lg p-6 text-center">
+       <div class="text-5xl mb-3">
+        🍰
+       </div>
+       <h3 class="font-cormorant text-2xl font-medium text-gray-100 mb-2">Crème Brûlée</h3>
+       <p class="text-gray-400 text-sm mb-3">Madagascar vanilla, caramelized sugar, fresh berries</p><span class="font-cormorant text-2xl" style="color: #d4af37;">₹1,500</span>
+      </div>
+      <div class="course-card bg-gradient-to-br from-gray-900/40 to-gray-800/40 border border-gray-800 rounded-lg p-6 text-center">
+       <div class="text-5xl mb-3">
+        🍫
+       </div>
+       <h3 class="font-cormorant text-2xl font-medium text-gray-100 mb-2">Chocolate Soufflé</h3>
+       <p class="text-gray-400 text-sm mb-3">Valrhona dark chocolate, crème anglaise, gold leaf</p><span class="font-cormorant text-2xl" style="color: #d4af37;">₹1,850</span>
+      </div>
+      <div class="course-card bg-gradient-to-br from-gray-900/40 to-gray-800/40 border border-gray-800 rounded-lg p-6 text-center">
+       <div class="text-5xl mb-3">
+        🥧
+       </div>
+       <h3 class="font-cormorant text-2xl font-medium text-gray-100 mb-2">Tarte Tatin</h3>
+       <p class="text-gray-400 text-sm mb-3">Caramelized apples, puff pastry, vanilla ice cream</p><span class="font-cormorant text-2xl" style="color: #d4af37;">₹1,700</span>
+      </div>
+     </div>
+    </section><!-- Chef's Tasting Menu -->
+    <section class="mb-20">
+     <div class="bg-gradient-to-br from-yellow-900/20 to-yellow-800/10 border-2 border-yellow-700/30 rounded-lg p-10 text-center">
+      <div class="text-5xl mb-4">
+       ⭐
+      </div>
+      <h2 class="font-cormorant text-4xl md:text-5xl font-light mb-4" style="color: #d4af37;">Chef's Tasting Menu</h2>
+      <p class="text-gray-300 mb-6 leading-relaxed max-w-2xl mx-auto">Embark on a culinary journey with our seven-course tasting menu, curated by Chef Philippe Beaumont. Each course paired with exceptional wines.</p>
+      <div class="text-gray-400 mb-6">
+       <p class="text-sm uppercase tracking-wider mb-2">Available Tuesday through Saturday</p>
+       <p class="text-sm">Reservation required 48 hours in advance</p>
+      </div>
+      <div class="font-cormorant text-5xl mb-6" style="color: #d4af37;">
+       ₹16,300 per person
+      </div><button class="reserve-btn bg-gradient-to-r from-yellow-700 to-yellow-600 text-white px-8 py-3 font-montserrat tracking-wider text-sm hover:from-yellow-600 hover:to-yellow-500 transition-all duration-300"> INQUIRE ABOUT TASTING MENU </button>
+     </div>
+    </section>
+   </main><!-- Footer -->
+   <footer class="border-t border-gray-800 py-12 px-4">
+    <div class="max-w-6xl mx-auto">
+     <div class="grid md:grid-cols-3 gap-8 mb-8">
+      <div class="text-center md:text-left">
+       <h3 class="font-cormorant text-3xl font-light mb-3" style="color: #d4af37;">Urban Plate</h3>
+       <p class="text-gray-400 text-sm leading-relaxed">Michelin ⭐⭐ Restaurant</p>
+       <p class="text-gray-500 text-xs mt-2">Est. 1987</p>
+      </div>
+      <div class="text-center">
+       <h4 class="font-montserrat text-sm uppercase tracking-wider mb-3" style="color: #d4af37;">Reservations</h4>
+       <p class="text-gray-400 text-sm mb-2">Dinner Service</p>
+       <p class="text-gray-500 text-sm mb-3">Tuesday - Saturday: 6:00 PM - 10:00 PM</p>
+       <p class="text-gray-400 text-sm">Closed Sunday &amp; Monday</p>
+      </div>
+      <div class="text-center md:text-right">
+       <h4 class="font-montserrat text-sm uppercase tracking-wider mb-3" style="color: #d4af37;">Contact</h4>
+       <p class="text-gray-400 text-sm mb-2">📞 +1 (212) 555-CHEF</p>
+       <p class="text-gray-400 text-sm mb-2">✉ reservations@lechateau.com</p>
+       <p class="text-gray-500 text-sm">123 Park Avenue, New York</p>
+      </div>
+     </div>
+     <div class="border-t border-gray-800 pt-8 text-center">
+      <p id="footer-text" class="text-gray-500 text-sm mb-4 font-cormorant text-lg italic">An unforgettable dining experience awaits</p>
+      <div class="flex justify-center gap-6 mb-6 flex-wrap"><span class="text-xs text-gray-600 uppercase tracking-wider">Dress Code: Smart Elegant</span> <span class="text-xs text-gray-600">•</span> <span class="text-xs text-gray-600 uppercase tracking-wider">Valet Parking Available</span> <span class="text-xs text-gray-600">•</span> <span class="text-xs text-gray-600 uppercase tracking-wider">Private Dining Rooms</span>
+      </div>
+      <p class="text-gray-600 text-xs">© 2024 Le Château. All rights reserved.</p>
+     </div>
+    </div>
+   </footer>
+  </div>
+  <script>
+    // Configuration
+    const defaultConfig = {
+      restaurant_name: 'Urban Plate',
+      tagline: 'EXQUISITE FRENCH CUISINE',
+      reservation_text: 'RESERVE YOUR TABLE',
+      footer_text: 'An unforgettable dining experience awaits',
+      primary_bg_color: '#0a0a0a',
+      secondary_surface_color: '#1a1410',
+      text_color: '#e5e7eb',
+      primary_action_color: '#d4af37',
+      secondary_action_color: '#b8960f'
+    };
+   
+    let config = { ...defaultConfig };
+   
+    // Element SDK config change handler
+    async function onConfigChange(newConfig) {
+      config = { ...defaultConfig, ...newConfig };
+     
+      // Update text content
+      const restaurantName = config.restaurant_name || defaultConfig.restaurant_name;
+      const tagline = config.tagline || defaultConfig.tagline;
+      const reservationText = config.reservation_text || defaultConfig.reservation_text;
+      const footerText = config.footer_text || defaultConfig.footer_text;
+     
+      document.getElementById('restaurant-name').textContent = restaurantName;
+      document.getElementById('tagline').textContent = tagline;
+      document.getElementById('reserve-button').textContent = reservationText;
+      document.getElementById('footer-text').textContent = footerText;
+     
+      // Apply color scheme
+      const primaryBg = config.primary_bg_color || defaultConfig.primary_bg_color;
+      const secondarySurface = config.secondary_surface_color || defaultConfig.secondary_surface_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const primaryAction = config.primary_action_color || defaultConfig.primary_action_color;
+      const secondaryAction = config.secondary_action_color || defaultConfig.secondary_action_color;
+     
+      document.body.style.background = `linear-gradient(135deg, ${primaryBg} 0%, ${secondarySurface} 50%, ${primaryBg} 100%)`;
+     
+      // Update text colors
+      document.querySelectorAll('.text-gray-100, h3').forEach(el => {
+        el.style.color = textColor;
+      });
+     
+      // Update accent colors (gold elements)
+      document.querySelectorAll('[style*="#d4af37"]').forEach(el => {
+        const currentStyle = el.getAttribute('style');
+        el.setAttribute('style', currentStyle.replace(/#d4af37/g, primaryAction));
+      });
+     
+      // Update buttons
+      document.querySelectorAll('.reserve-btn').forEach(btn => {
+        btn.style.background = `linear-gradient(to right, ${secondaryAction}, ${primaryAction})`;
+      });
+    }
+   
+    // Capabilities mapping
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.primary_bg_color || defaultConfig.primary_bg_color,
+            set: (value) => {
+              config.primary_bg_color = value;
+              window.elementSdk.setConfig({ primary_bg_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_surface_color || defaultConfig.secondary_surface_color,
+            set: (value) => {
+              config.secondary_surface_color = value;
+              window.elementSdk.setConfig({ secondary_surface_color: value });
+            }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => {
+              config.text_color = value;
+              window.elementSdk.setConfig({ text_color: value });
+            }
+          },
+          {
+            get: () => config.primary_action_color || defaultConfig.primary_action_color,
+            set: (value) => {
+              config.primary_action_color = value;
+              window.elementSdk.setConfig({ primary_action_color: value });
+            }
+          },
+          {
+            get: () => config.secondary_action_color || defaultConfig.secondary_action_color,
+            set: (value) => {
+              config.secondary_action_color = value;
+              window.elementSdk.setConfig({ secondary_action_color: value });
+            }
+          }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+   
+    // Edit panel values mapping
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ['restaurant_name', config.restaurant_name || defaultConfig.restaurant_name],
+        ['tagline', config.tagline || defaultConfig.tagline],
+        ['reservation_text', config.reservation_text || defaultConfig.reservation_text],
+        ['footer_text', config.footer_text || defaultConfig.footer_text]
+      ]);
+    }
+   
+    // Button interaction
+    document.querySelectorAll('button').forEach(button => {
+      button.addEventListener('click', function() {
+        const originalText = this.textContent;
+        this.textContent = '✓ REQUEST SENT';
+        this.style.opacity = '0.8';
+       
+        setTimeout(() => {
+          this.textContent = originalText;
+          this.style.opacity = '1';
+        }, 2000);
+      });
+    });
+   
+    // Scroll animations
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    };
+   
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, observerOptions);
+   
+    document.querySelectorAll('.menu-item, .course-card').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(20px)';
+      el.style.transition = 'all 0.6s ease-out';
+      observer.observe(el);
+    });
+   
+    // Initialize Element SDK
+    function init() {
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+    }
+   
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c1c9707f3da3b19',t:'MTc2OTA1OTA5OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
