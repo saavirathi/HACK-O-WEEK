@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en" class="h-full scroll-smooth">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeLaunch Bootcamp</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Gradient backgrounds */
+    .hero-bg {
+      background: linear-gradient(135deg, #0a0a1a 0%, #0d1b3e 40%, #1a0a3e 70%, #0a0a1a 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,0.25) 0%, transparent 70%),
+                  radial-gradient(ellipse 60% 40% at 80% 50%, rgba(139,92,246,0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(99,102,241,0.07) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+    .grad-text {
+      background: linear-gradient(135deg, #818cf8, #c084fc, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .card-glass {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      backdrop-filter: blur(12px);
+    }
+    .section-dark { background: #070711; }
+    .section-darker { background: #050509; }
+    .section-mid { background: #0b0b1e; }
+    .pill {
+      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2));
+      border: 1px solid rgba(139,92,246,0.3);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      transition: all 0.3s;
+      box-shadow: 0 0 30px rgba(99,102,241,0.35);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 45px rgba(99,102,241,0.55);
+    }
+    .btn-outline {
+      border: 1px solid rgba(139,92,246,0.5);
+      color: #c084fc;
+      transition: all 0.3s;
+    }
+    .btn-outline:hover {
+      background: rgba(139,92,246,0.1);
+      border-color: #c084fc;
+    }
+    .tech-card {
+      background: linear-gradient(135deg, rgba(15,15,35,0.9), rgba(20,10,40,0.9));
+      border: 1px solid rgba(99,102,241,0.2);
+      transition: all 0.3s;
+    }
+    .tech-card:hover {
+      border-color: rgba(139,92,246,0.5);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(99,102,241,0.15);
+    }
+    .pricing-card {
+      background: linear-gradient(160deg, #0f0f23, #160d30);
+      border: 1px solid rgba(99,102,241,0.2);
+      transition: all 0.3s;
+    }
+    .pricing-popular {
+      background: linear-gradient(160deg, #1a1040, #0d1b4a);
+      border: 1px solid rgba(139,92,246,0.6);
+      box-shadow: 0 0 60px rgba(99,102,241,0.2);
+    }
+    .testimonial-card {
+      background: linear-gradient(135deg, rgba(15,15,30,0.95), rgba(20,10,40,0.95));
+      border: 1px solid rgba(99,102,241,0.15);
+    }
+    .nav-link { transition: color 0.2s; }
+    .nav-link:hover { color: #c084fc; }
+    .faq-item {
+      border-bottom: 1px solid rgba(99,102,241,0.15);
+    }
+    .faq-answer { display: none; }
+    .faq-answer.open { display: block; }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.05));
+      border: 1px solid rgba(99,102,241,0.2);
+    }
+    /* Avatar placeholder */
+    .avatar-grad-1 { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+    .avatar-grad-2 { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+    .avatar-grad-3 { background: linear-gradient(135deg, #ec4899, #8b5cf6); }
+    .avatar-grad-4 { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+
+    /* Animations */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 30px rgba(99,102,241,0.3); }
+      50% { box-shadow: 0 0 60px rgba(139,92,246,0.5); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .float-anim { animation: float 5s ease-in-out infinite; }
+    .fade-up { animation: fadeInUp 0.7s ease both; }
+    .fade-up-2 { animation: fadeInUp 0.7s 0.15s ease both; }
+    .fade-up-3 { animation: fadeInUp 0.7s 0.3s ease both; }
+    .fade-up-4 { animation: fadeInUp 0.7s 0.45s ease both; }
+
+    /* Sticky nav */
+    .sticky-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(7,7,17,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(99,102,241,0.15);
+      transition: all 0.3s;
+    }
+
+    /* Code window */
+    .code-window {
+      background: #0d1117;
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .code-titlebar {
+      background: #161b22;
+      border-bottom: 1px solid rgba(99,102,241,0.2);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+
+    /* Progress bars */
+    .progress-bar {
+      height: 4px;
+      background: rgba(99,102,241,0.2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #c084fc);
+      border-radius: 4px;
+    }
+
+    /* Mobile menu */
+    #mobile-menu { display: none; }
+    #mobile-menu.open { display: block; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #070711; }
+    ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 3px; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-[#070711] text-white overflow-x-hidden"><!-- STICKY NAV -->
+  <nav class="sticky-nav">
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16"><a href="#" class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg btn-primary flex items-center justify-center"><i data-lucide="code-2" style="width:16px;height:16px;stroke-width:2.5;"></i>
+      </div><span id="nav-brand" class="font-bold text-lg tracking-tight">CodeLaunch</span> </a>
+     <div class="hidden md:flex items-center gap-8"><a href="#curriculum" class="nav-link text-sm text-gray-300">Curriculum</a> <a href="#instructors" class="nav-link text-sm text-gray-300">Instructors</a> <a href="#testimonials" class="nav-link text-sm text-gray-300">Testimonials</a> <a href="#pricing" class="nav-link text-sm text-gray-300">Pricing</a> <a href="#faq" class="nav-link text-sm text-gray-300">FAQ</a>
+     </div>
+     <div class="hidden md:flex items-center gap-3"><button class="btn-outline text-sm px-4 py-2 rounded-lg">Log In</button> <button class="btn-primary text-sm px-5 py-2 rounded-lg font-semibold" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Enroll Now</button>
+     </div><button id="menu-toggle" class="md:hidden p-2 rounded-lg" onclick="toggleMobile()"> <i data-lucide="menu" style="width:22px;height:22px;"></i> </button>
+    </div>
+   </div><!-- Mobile menu -->
+   <div id="mobile-menu" class="md:hidden px-4 pb-4 border-t border-white/5">
+    <div class="flex flex-col gap-1 pt-3"><a href="#curriculum" class="nav-link text-sm text-gray-300 py-2 px-3 rounded-lg hover:bg-white/5" onclick="toggleMobile()">Curriculum</a> <a href="#instructors" class="nav-link text-sm text-gray-300 py-2 px-3 rounded-lg hover:bg-white/5" onclick="toggleMobile()">Instructors</a> <a href="#testimonials" class="nav-link text-sm text-gray-300 py-2 px-3 rounded-lg hover:bg-white/5" onclick="toggleMobile()">Testimonials</a> <a href="#pricing" class="nav-link text-sm text-gray-300 py-2 px-3 rounded-lg hover:bg-white/5" onclick="toggleMobile()">Pricing</a> <a href="#faq" class="nav-link text-sm text-gray-300 py-2 px-3 rounded-lg hover:bg-white/5" onclick="toggleMobile()">FAQ</a>
+     <div class="flex gap-3 mt-3 pt-3 border-t border-white/10"><button class="btn-outline flex-1 text-sm px-4 py-2 rounded-lg">Log In</button> <button class="btn-primary flex-1 text-sm px-4 py-2 rounded-lg font-semibold">Enroll Now</button>
+     </div>
+    </div>
+   </div>
+  </nav>
+  <main><!-- HERO -->
+   <section class="hero-bg min-h-screen flex items-center pt-16 pb-24 relative">
+    <div class="grid-overlay"></div><!-- Floating orbs -->
+    <div style="position:absolute;top:15%;left:5%;width:300px;height:300px;background:radial-gradient(circle,rgba(99,102,241,0.12),transparent);border-radius:50%;pointer-events:none;"></div>
+    <div style="position:absolute;bottom:20%;right:8%;width:250px;height:250px;background:radial-gradient(circle,rgba(139,92,246,0.1),transparent);border-radius:50%;pointer-events:none;"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+     <div class="grid lg:grid-cols-2 gap-16 items-center"><!-- Left content -->
+      <div>
+       <div class="pill inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-purple-300 mb-6 fade-up"><span class="w-2 h-2 rounded-full bg-green-400 inline-block" style="animation:pulse-glow 2s infinite;box-shadow:0 0 8px #4ade80;"></span> Applications Open — Cohort #12 Starting Soon
+       </div>
+       <h1 id="hero-headline" class="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight fade-up-2">Become a <span class="grad-text">Full-Stack Web Developer</span> in 12 Weeks</h1>
+       <p id="hero-subtext" class="mt-6 text-lg text-gray-300 leading-relaxed fade-up-3">Master modern web development from HTML to React and Node.js. Learn from industry veterans, build real products, and land your dream tech job — guaranteed.</p>
+       <div class="flex flex-col sm:flex-row gap-4 mt-8 fade-up-4"><button id="hero-cta" class="btn-primary px-8 py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})"> Enroll Now <i data-lucide="arrow-right" style="width:18px;height:18px;"></i> </button> <button class="btn-outline px-8 py-4 rounded-xl font-semibold text-base flex items-center justify-center gap-2" onclick="document.getElementById('curriculum').scrollIntoView({behavior:'smooth'})"> <i data-lucide="play-circle" style="width:18px;height:18px;"></i> View Curriculum </button>
+       </div><!-- Stats row -->
+       <div class="flex flex-wrap gap-6 mt-10 fade-up-4">
+        <div>
+         <div class="text-2xl font-black grad-text">
+          2,400+
+         </div>
+         <div class="text-xs text-gray-400 mt-0.5">
+          Graduates hired
+         </div>
+        </div>
+        <div class="w-px bg-white/10"></div>
+        <div>
+         <div class="text-2xl font-black grad-text">
+          94%
+         </div>
+         <div class="text-xs text-gray-400 mt-0.5">
+          Job placement rate
+         </div>
+        </div>
+        <div class="w-px bg-white/10"></div>
+        <div>
+         <div class="text-2xl font-black grad-text">
+          $95k
+         </div>
+         <div class="text-xs text-gray-400 mt-0.5">
+          Average starting salary
+         </div>
+        </div>
+       </div>
+      </div><!-- Right: Code window visual -->
+      <div class="hidden lg:block float-anim">
+       <div class="code-window" style="box-shadow:0 30px 80px rgba(99,102,241,0.25);">
+        <div class="code-titlebar">
+         <div class="dot" style="background:#ff5f57;"></div>
+         <div class="dot" style="background:#febc2e;"></div>
+         <div class="dot" style="background:#28c840;"></div><span class="mono text-xs text-gray-400 ml-3">app.js — CodeLaunch Project</span>
+        </div>
+        <div class="p-6 mono text-sm leading-relaxed" style="background:#0d1117;">
+         <div>
+          <span class="text-purple-400">import</span> <span class="text-blue-300">React</span><span class="text-gray-300">, { useState } </span><span class="text-purple-400">from</span> <span class="text-green-400">'react'</span><span class="text-gray-300">;</span>
+         </div>
+         <div class="mt-3">
+          <span class="text-purple-400">const</span> <span class="text-yellow-300">App</span> <span class="text-gray-300">= () =&gt; {</span>
+         </div>
+         <div class="ml-4">
+          <span class="text-purple-400">const</span> <span class="text-gray-300">[</span><span class="text-blue-300">skills</span><span class="text-gray-300">, </span><span class="text-blue-300">setSkills</span><span class="text-gray-300">] = </span><span class="text-yellow-300">useState</span><span class="text-gray-300">([</span>
+         </div>
+         <div class="ml-8">
+          <span class="text-green-400">'React'</span><span class="text-gray-300">, </span><span class="text-green-400">'Node.js'</span><span class="text-gray-300">,</span>
+         </div>
+         <div class="ml-8">
+          <span class="text-green-400">'MongoDB'</span><span class="text-gray-300">, </span><span class="text-green-400">'TypeScript'</span>
+         </div>
+         <div class="ml-4">
+          <span class="text-gray-300">]);</span>
+         </div>
+         <div class="mt-2 ml-4">
+          <span class="text-purple-400">return</span> <span class="text-gray-300">(</span>
+         </div>
+         <div class="ml-8">
+          <span class="text-red-400">&lt;div</span> <span class="text-yellow-300">className</span><span class="text-gray-300">=</span><span class="text-green-400">"hero"</span><span class="text-red-400">&gt;</span>
+         </div>
+         <div class="ml-12">
+          <span class="text-red-400">&lt;h1&gt;</span><span class="text-gray-200">Hello, World! 🚀</span><span class="text-red-400">&lt;/h1&gt;</span>
+         </div>
+         <div class="ml-8">
+          <span class="text-red-400">&lt;/div&gt;</span>
+         </div>
+         <div class="ml-4">
+          <span class="text-gray-300">);</span>
+         </div>
+         <div>
+          <span class="text-gray-300">};</span>
+         </div>
+         <div class="mt-3">
+          <span class="text-purple-400">export default</span> <span class="text-yellow-300">App</span><span class="text-gray-300">;</span>
+         </div>
+        </div>
+       </div><!-- Below code window -->
+       <div class="flex gap-3 mt-4">
+        <div class="stat-card flex-1 rounded-xl p-4 flex items-center gap-3">
+         <div class="w-10 h-10 rounded-lg btn-primary flex items-center justify-center flex-shrink-0"><i data-lucide="zap" style="width:16px;height:16px;"></i>
+         </div>
+         <div>
+          <div class="text-sm font-bold">
+           Live Projects
+          </div>
+          <div class="text-xs text-gray-400">
+           Build 10+ real apps
+          </div>
+         </div>
+        </div>
+        <div class="stat-card flex-1 rounded-xl p-4 flex items-center gap-3">
+         <div class="w-10 h-10 rounded-lg" style="background:linear-gradient(135deg,#06b6d4,#3b82f6);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i data-lucide="briefcase" style="width:16px;height:16px;"></i>
+         </div>
+         <div>
+          <div class="text-sm font-bold">
+           Job Guarantee
+          </div>
+          <div class="text-xs text-gray-400">
+           Or your money back
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- LOGOS / SOCIAL PROOF -->
+   <section class="section-darker py-10 border-y border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <p class="text-center text-xs text-gray-500 uppercase tracking-widest font-semibold mb-8">Our graduates work at</p>
+     <div class="flex flex-wrap justify-center items-center gap-x-12 gap-y-4">
+      <div class="mono text-xl font-bold text-gray-500 hover:text-gray-300 transition-colors cursor-default">
+       Google
+      </div>
+      <div class="mono text-xl font-bold text-gray-500 hover:text-gray-300 transition-colors cursor-default">
+       Stripe
+      </div>
+      <div class="mono text-xl font-bold text-gray-500 hover:text-gray-300 transition-colors cursor-default">
+       Shopify
+      </div>
+      <div class="mono text-xl font-bold text-gray-500 hover:text-gray-300 transition-colors cursor-default">
+       Netflix
+      </div>
+      <div class="mono text-xl font-bold text-gray-500 hover:text-gray-300 transition-colors cursor-default">
+       Airbnb
+      </div>
+      <div class="mono text-xl font-bold text-gray-500 hover:text-gray-300 transition-colors cursor-default">
+       GitHub
+      </div>
+     </div>
+    </div>
+   </section><!-- COURSE OVERVIEW -->
+   <section class="section-dark py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="text-center mb-16">
+      <div class="pill inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold text-purple-300 mb-4"><i data-lucide="layers" style="width:13px;height:13px;"></i> COURSE OVERVIEW
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-black tracking-tight">Everything you need to go from <span class="grad-text">zero to hired</span></h2>
+      <p class="text-gray-400 mt-4 text-lg max-w-2xl mx-auto">An immersive, hands-on curriculum designed with top companies to match exactly what the industry demands.</p>
+     </div>
+     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Feature cards -->
+      <div class="tech-card rounded-2xl p-6">
+       <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.15));"><i data-lucide="monitor" style="width:22px;height:22px;color:#818cf8;"></i>
+       </div>
+       <h3 class="font-bold text-lg mb-2">Full-Stack Coverage</h3>
+       <p class="text-gray-400 text-sm leading-relaxed">From HTML to databases — build complete web applications from scratch. Front-end, back-end, and deployment all covered.</p>
+      </div>
+      <div class="tech-card rounded-2xl p-6">
+       <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:linear-gradient(135deg,rgba(6,182,212,0.2),rgba(59,130,246,0.15));"><i data-lucide="users" style="width:22px;height:22px;color:#60a5fa;"></i>
+       </div>
+       <h3 class="font-bold text-lg mb-2">Cohort-Based Learning</h3>
+       <p class="text-gray-400 text-sm leading-relaxed">Learn alongside a tight-knit group of peers. Pair-program, collaborate on group projects, and build your network.</p>
+      </div>
+      <div class="tech-card rounded-2xl p-6">
+       <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:linear-gradient(135deg,rgba(16,185,129,0.2),rgba(52,211,153,0.1));"><i data-lucide="briefcase" style="width:22px;height:22px;color:#34d399;"></i>
+       </div>
+       <h3 class="font-bold text-lg mb-2">Career Placement</h3>
+       <p class="text-gray-400 text-sm leading-relaxed">Dedicated career coaches, mock interviews, resume reviews, and direct connections to 500+ hiring partners.</p>
+      </div>
+      <div class="tech-card rounded-2xl p-6">
+       <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(251,191,36,0.1));"><i data-lucide="code-2" style="width:22px;height:22px;color:#fbbf24;"></i>
+       </div>
+       <h3 class="font-bold text-lg mb-2">Real-World Projects</h3>
+       <p class="text-gray-400 text-sm leading-relaxed">Build a portfolio of 10+ projects including a full-stack app, REST API, and a capstone product you'll be proud to show.</p>
+      </div>
+      <div class="tech-card rounded-2xl p-6">
+       <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:linear-gradient(135deg,rgba(236,72,153,0.2),rgba(139,92,246,0.15));"><i data-lucide="video" style="width:22px;height:22px;color:#e879f9;"></i>
+       </div>
+       <h3 class="font-bold text-lg mb-2">Live Instruction</h3>
+       <p class="text-gray-400 text-sm leading-relaxed">Daily live sessions with senior instructors. Ask questions in real-time, get unstuck fast, and never feel lost.</p>
+      </div>
+      <div class="tech-card rounded-2xl p-6">
+       <div class="w-12 h-12 rounded-xl mb-4 flex items-center justify-center" style="background:linear-gradient(135deg,rgba(239,68,68,0.2),rgba(251,113,133,0.1));"><i data-lucide="shield-check" style="width:22px;height:22px;color:#f87171;"></i>
+       </div>
+       <h3 class="font-bold text-lg mb-2">Job Guarantee</h3>
+       <p class="text-gray-400 text-sm leading-relaxed">If you don't land a job within 180 days of graduating, we'll refund your tuition — no questions asked.</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- CURRICULUM -->
+   <section id="curriculum" class="section-mid py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="text-center mb-16">
+      <div class="pill inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold text-purple-300 mb-4"><i data-lucide="book-open" style="width:13px;height:13px;"></i> CURRICULUM
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-black tracking-tight">12 weeks of <span class="grad-text">battle-tested content</span></h2>
+      <p class="text-gray-400 mt-4 max-w-xl mx-auto">Structured from fundamentals to advanced topics, each week builds on the last.</p>
+     </div>
+     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5"><!-- Tech cards -->
+      <div class="tech-card rounded-2xl p-5 flex gap-4 items-start">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl" style="background:rgba(255,100,0,0.15);">
+        🌐
+       </div>
+       <div class="flex-1">
+        <div class="flex items-center justify-between mb-1">
+         <h3 class="font-bold">HTML &amp; CSS</h3><span class="text-xs text-gray-500 mono">Weeks 1–2</span>
+        </div>
+        <p class="text-gray-400 text-sm mb-3">Semantic markup, Flexbox, Grid, animations, and responsive design.</p>
+        <div class="progress-bar">
+         <div class="progress-fill" style="width:100%;"></div>
+        </div>
+       </div>
+      </div>
+      <div class="tech-card rounded-2xl p-5 flex gap-4 items-start">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl" style="background:rgba(240,220,0,0.15);">
+        ⚡
+       </div>
+       <div class="flex-1">
+        <div class="flex items-center justify-between mb-1">
+         <h3 class="font-bold">JavaScript</h3><span class="text-xs text-gray-500 mono">Weeks 3–4</span>
+        </div>
+        <p class="text-gray-400 text-sm mb-3">ES6+, DOM manipulation, async/await, fetch API, and OOP principles.</p>
+        <div class="progress-bar">
+         <div class="progress-fill" style="width:100%;"></div>
+        </div>
+       </div>
+      </div>
+      <div class="tech-card rounded-2xl p-5 flex gap-4 items-start">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl" style="background:rgba(97,218,251,0.15);">
+        ⚛️
+       </div>
+       <div class="flex-1">
+        <div class="flex items-center justify-between mb-1">
+         <h3 class="font-bold">React</h3><span class="text-xs text-gray-500 mono">Weeks 5–6</span>
+        </div>
+        <p class="text-gray-400 text-sm mb-3">Components, hooks, state management, React Router, and Context API.</p>
+        <div class="progress-bar">
+         <div class="progress-fill" style="width:100%;"></div>
+        </div>
+       </div>
+      </div>
+      <div class="tech-card rounded-2xl p-5 flex gap-4 items-start">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl" style="background:rgba(83,193,98,0.15);">
+        🚀
+       </div>
+       <div class="flex-1">
+        <div class="flex items-center justify-between mb-1">
+         <h3 class="font-bold">Node.js &amp; Express</h3><span class="text-xs text-gray-500 mono">Weeks 7–8</span>
+        </div>
+        <p class="text-gray-400 text-sm mb-3">REST APIs, middleware, authentication, JWT tokens, and server architecture.</p>
+        <div class="progress-bar">
+         <div class="progress-fill" style="width:85%;"></div>
+        </div>
+       </div>
+      </div>
+      <div class="tech-card rounded-2xl p-5 flex gap-4 items-start">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl" style="background:rgba(77,179,61,0.15);">
+        🗄️
+       </div>
+       <div class="flex-1">
+        <div class="flex items-center justify-between mb-1">
+         <h3 class="font-bold">Databases</h3><span class="text-xs text-gray-500 mono">Weeks 9–10</span>
+        </div>
+        <p class="text-gray-400 text-sm mb-3">MongoDB, PostgreSQL, schema design, querying, ORMs, and data modeling.</p>
+        <div class="progress-bar">
+         <div class="progress-fill" style="width:80%;"></div>
+        </div>
+       </div>
+      </div>
+      <div class="tech-card rounded-2xl p-5 flex gap-4 items-start">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl" style="background:rgba(99,102,241,0.2);">
+        🏆
+       </div>
+       <div class="flex-1">
+        <div class="flex items-center justify-between mb-1">
+         <h3 class="font-bold">Capstone + Deployment</h3><span class="text-xs text-gray-500 mono">Weeks 11–12</span>
+        </div>
+        <p class="text-gray-400 text-sm mb-3">Deploy to AWS/Vercel, CI/CD pipelines, Docker basics, and full product launch.</p>
+        <div class="progress-bar">
+         <div class="progress-fill" style="width:75%;"></div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- INSTRUCTORS -->
+   <section id="instructors" class="section-dark py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="text-center mb-16">
+      <div class="pill inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold text-purple-300 mb-4"><i data-lucide="award" style="width:13px;height:13px;"></i> INSTRUCTORS
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-black tracking-tight">Learn from engineers who <span class="grad-text">built the products you use</span></h2>
+     </div>
+     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"><!-- Instructor 1 -->
+      <div class="tech-card rounded-2xl p-6 text-center">
+       <div class="w-20 h-20 avatar-grad-1 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-black">
+        JM
+       </div>
+       <h3 class="font-bold text-lg">Jordan Mercer</h3>
+       <p class="text-purple-400 text-sm mt-1 font-medium">Lead Instructor</p>
+       <p class="text-gray-400 text-xs mt-3 leading-relaxed">ex-Google Senior Engineer. 12 years building scalable web apps used by millions.</p>
+       <div class="flex justify-center gap-3 mt-4"><span class="text-xs pill px-2 py-1 rounded-md text-purple-300">React</span> <span class="text-xs pill px-2 py-1 rounded-md text-purple-300">Node.js</span>
+       </div>
+      </div><!-- Instructor 2 -->
+      <div class="tech-card rounded-2xl p-6 text-center">
+       <div class="w-20 h-20 avatar-grad-2 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-black">
+        SR
+       </div>
+       <h3 class="font-bold text-lg">Sofia Reyes</h3>
+       <p class="text-blue-400 text-sm mt-1 font-medium">Frontend Instructor</p>
+       <p class="text-gray-400 text-xs mt-3 leading-relaxed">ex-Stripe, UI engineering lead. Designed systems serving 100M+ monthly users.</p>
+       <div class="flex justify-center gap-3 mt-4"><span class="text-xs pill px-2 py-1 rounded-md text-purple-300">CSS</span> <span class="text-xs pill px-2 py-1 rounded-md text-purple-300">TypeScript</span>
+       </div>
+      </div><!-- Instructor 3 -->
+      <div class="tech-card rounded-2xl p-6 text-center">
+       <div class="w-20 h-20 avatar-grad-3 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-black">
+        KC
+       </div>
+       <h3 class="font-bold text-lg">Kwame Chen</h3>
+       <p class="text-pink-400 text-sm mt-1 font-medium">Backend Instructor</p>
+       <p class="text-gray-400 text-xs mt-3 leading-relaxed">ex-Airbnb infrastructure engineer. Shipped microservices at petabyte scale.</p>
+       <div class="flex justify-center gap-3 mt-4"><span class="text-xs pill px-2 py-1 rounded-md text-purple-300">Databases</span> <span class="text-xs pill px-2 py-1 rounded-md text-purple-300">AWS</span>
+       </div>
+      </div><!-- Instructor 4 -->
+      <div class="tech-card rounded-2xl p-6 text-center">
+       <div class="w-20 h-20 avatar-grad-4 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-black">
+        AP
+       </div>
+       <h3 class="font-bold text-lg">Amara Patel</h3>
+       <p class="text-yellow-400 text-sm mt-1 font-medium">Career Coach</p>
+       <p class="text-gray-400 text-xs mt-3 leading-relaxed">Former tech recruiter at Meta. Placed 600+ engineers across FAANG and startups.</p>
+       <div class="flex justify-center gap-3 mt-4"><span class="text-xs pill px-2 py-1 rounded-md text-purple-300">Hiring</span> <span class="text-xs pill px-2 py-1 rounded-md text-purple-300">Interviews</span>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- TESTIMONIALS -->
+   <section id="testimonials" class="section-mid py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="text-center mb-16">
+      <div class="pill inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold text-purple-300 mb-4"><i data-lucide="star" style="width:13px;height:13px;"></i> TESTIMONIALS
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-black tracking-tight">Hear it from the <span class="grad-text">developers we built</span></h2>
+     </div>
+     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="testimonial-card rounded-2xl p-6">
+       <div class="flex gap-1 mb-4"><i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i>
+       </div>
+       <p class="text-gray-300 text-sm leading-relaxed italic">"I went from a barista to a software engineer at a Series B startup in 4 months. The curriculum is incredibly well-paced and the instructors genuinely care about your success."</p>
+       <div class="flex items-center gap-3 mt-5">
+        <div class="w-10 h-10 avatar-grad-1 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+         MT
+        </div>
+        <div>
+         <div class="font-semibold text-sm">
+          Marcus Torres
+         </div>
+         <div class="text-xs text-gray-500">
+          Software Engineer @ Vercel
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="testimonial-card rounded-2xl p-6">
+       <div class="flex gap-1 mb-4"><i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i>
+       </div>
+       <p class="text-gray-300 text-sm leading-relaxed italic">"The job guarantee gave me confidence to quit my job and go all-in. Within 3 weeks of graduating I had 4 offers. Best investment I've ever made."</p>
+       <div class="flex items-center gap-3 mt-5">
+        <div class="w-10 h-10 avatar-grad-2 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+         LN
+        </div>
+        <div>
+         <div class="font-semibold text-sm">
+          Layla Nguyen
+         </div>
+         <div class="text-xs text-gray-500">
+          Frontend Developer @ Figma
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="testimonial-card rounded-2xl p-6">
+       <div class="flex gap-1 mb-4"><i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i> <i data-lucide="star" style="width:14px;height:14px;color:#fbbf24;fill:#fbbf24;"></i>
+       </div>
+       <p class="text-gray-300 text-sm leading-relaxed italic">"Coming from a non-tech background was scary, but the cohort format made it feel like we were all in it together. The community alone is worth the price."</p>
+       <div class="flex items-center gap-3 mt-5">
+        <div class="w-10 h-10 avatar-grad-3 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+         DJ
+        </div>
+        <div>
+         <div class="font-semibold text-sm">
+          Devon Jackson
+         </div>
+         <div class="text-xs text-gray-500">
+          Full-Stack Dev @ Shopify
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- PRICING -->
+   <section id="pricing" class="section-dark py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="text-center mb-16">
+      <div class="pill inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold text-purple-300 mb-4"><i data-lucide="tag" style="width:13px;height:13px;"></i> PRICING
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-black tracking-tight">Simple, transparent <span class="grad-text">pricing</span></h2>
+      <p class="text-gray-400 mt-4">No hidden fees. Choose the plan that works for you.</p>
+     </div>
+     <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto"><!-- Upfront -->
+      <div class="pricing-card rounded-2xl p-7">
+       <h3 class="font-bold text-lg mb-1">Upfront</h3>
+       <p class="text-gray-400 text-sm mb-5">Pay once, save the most.</p>
+       <div class="mb-6"><span class="text-4xl font-black">$9,999</span> <span class="text-gray-400 text-sm ml-1">one-time</span>
+       </div>
+       <ul class="space-y-3 mb-8">
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Full 12-week curriculum</li>
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Career coaching</li>
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Job placement support</li>
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Alumni network access</li>
+        <li class="flex items-center gap-2 text-sm text-gray-400"><i data-lucide="x" style="width:15px;height:15px;color:#6b7280;flex-shrink:0;"></i>1-on-1 mentoring</li>
+       </ul><button class="btn-outline w-full py-3 rounded-xl font-semibold text-sm">Enroll Now</button>
+      </div><!-- Most popular -->
+      <div class="pricing-popular rounded-2xl p-7 relative">
+       <div class="absolute -top-3 left-1/2 -translate-x-1/2"><span class="btn-primary text-xs font-bold px-4 py-1.5 rounded-full">Most Popular</span>
+       </div>
+       <h3 class="font-bold text-lg mb-1">Income Share</h3>
+       <p class="text-gray-400 text-sm mb-5">Pay only after you're hired.</p>
+       <div class="mb-6"><span class="text-4xl font-black">$0</span> <span class="text-gray-400 text-sm ml-1">upfront</span>
+        <div class="text-xs text-purple-300 mt-1 font-medium">
+         Then 15% of salary for 24 months
+        </div>
+       </div>
+       <ul class="space-y-3 mb-8">
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Full 12-week curriculum</li>
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Career coaching</li>
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Job placement support</li>
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Alumni network access</li>
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>1-on-1 mentoring</li>
+       </ul><button class="btn-primary w-full py-3 rounded-xl font-semibold text-sm">Apply Now</button>
+      </div><!-- Monthly -->
+      <div class="pricing-card rounded-2xl p-7">
+       <h3 class="font-bold text-lg mb-1">Monthly</h3>
+       <p class="text-gray-400 text-sm mb-5">Spread the cost comfortably.</p>
+       <div class="mb-6"><span class="text-4xl font-black">$999</span> <span class="text-gray-400 text-sm ml-1">/month</span>
+        <div class="text-xs text-gray-500 mt-1">
+         × 12 months = $11,988
+        </div>
+       </div>
+       <ul class="space-y-3 mb-8">
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Full 12-week curriculum</li>
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Career coaching</li>
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Job placement support</li>
+        <li class="flex items-center gap-2 text-sm text-gray-300"><i data-lucide="check" style="width:15px;height:15px;color:#34d399;flex-shrink:0;"></i>Alumni network access</li>
+        <li class="flex items-center gap-2 text-sm text-gray-400"><i data-lucide="x" style="width:15px;height:15px;color:#6b7280;flex-shrink:0;"></i>1-on-1 mentoring</li>
+       </ul><button class="btn-outline w-full py-3 rounded-xl font-semibold text-sm">Enroll Now</button>
+      </div>
+     </div>
+    </div>
+   </section><!-- FAQ -->
+   <section id="faq" class="section-mid py-24">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+     <div class="text-center mb-16">
+      <div class="pill inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold text-purple-300 mb-4"><i data-lucide="help-circle" style="width:13px;height:13px;"></i> FAQ
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-black tracking-tight">Frequently asked <span class="grad-text">questions</span></h2>
+     </div>
+     <div class="space-y-1" id="faq-list"><!-- FAQ items inserted by JS -->
+     </div>
+    </div>
+   </section><!-- CTA BANNER -->
+   <section class="py-20" style="background:linear-gradient(135deg,#0d0d2b,#160d30,#0a0a1a);">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+     <div class="pill inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold text-purple-300 mb-6"><span class="w-2 h-2 rounded-full bg-green-400 inline-block" style="box-shadow:0 0 8px #4ade80;"></span> Cohort #12 — Only 12 seats remaining
+     </div>
+     <h2 class="text-3xl sm:text-5xl font-black tracking-tight mb-6">Ready to change your career?<br><span class="grad-text">Your future starts today.</span></h2>
+     <p class="text-gray-400 text-lg max-w-xl mx-auto mb-8">Join 2,400+ graduates who took the leap. Applications close in 14 days.</p>
+     <div class="flex flex-col sm:flex-row gap-4 justify-center"><button class="btn-primary px-10 py-4 rounded-xl font-bold text-base" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Apply for Cohort #12</button> <button class="btn-outline px-10 py-4 rounded-xl font-semibold text-base">Download Syllabus</button>
+     </div>
+    </div>
+   </section>
+  </main><!-- FOOTER -->
+  <footer class="section-darker border-t border-white/5 py-14">
+   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+     <div>
+      <div class="flex items-center gap-2 mb-4">
+       <div class="w-8 h-8 rounded-lg btn-primary flex items-center justify-center"><i data-lucide="code-2" style="width:16px;height:16px;stroke-width:2.5;"></i>
+       </div><span id="footer-brand" class="font-bold text-lg">CodeLaunch</span>
+      </div>
+      <p class="text-gray-400 text-sm leading-relaxed">Training the next generation of full-stack web developers since 2018.</p>
+      <div class="flex gap-3 mt-5"><a href="#" class="w-8 h-8 card-glass rounded-lg flex items-center justify-center hover:border-purple-500 transition-colors"> <i data-lucide="twitter" style="width:15px;height:15px;color:#60a5fa;"></i> </a> <a href="#" class="w-8 h-8 card-glass rounded-lg flex items-center justify-center hover:border-purple-500 transition-colors"> <i data-lucide="linkedin" style="width:15px;height:15px;color:#60a5fa;"></i> </a> <a href="#" class="w-8 h-8 card-glass rounded-lg flex items-center justify-center hover:border-purple-500 transition-colors"> <i data-lucide="github" style="width:15px;height:15px;color:#60a5fa;"></i> </a> <a href="#" class="w-8 h-8 card-glass rounded-lg flex items-center justify-center hover:border-purple-500 transition-colors"> <i data-lucide="instagram" style="width:15px;height:15px;color:#60a5fa;"></i> </a>
+      </div>
+     </div>
+     <div>
+      <h4 class="font-semibold text-sm mb-4 text-gray-200">Program</h4>
+      <ul class="space-y-2">
+       <li><a href="#curriculum" class="text-gray-400 text-sm hover:text-purple-300 transition-colors">Curriculum</a></li>
+       <li><a href="#" class="text-gray-400 text-sm hover:text-purple-300 transition-colors">Schedule</a></li>
+       <li><a href="#instructors" class="text-gray-400 text-sm hover:text-purple-300 transition-colors">Instructors</a></li>
+       <li><a href="#pricing" class="text-gray-400 text-sm hover:text-purple-300 transition-colors">Pricing</a></li>
+      </ul>
+     </div>
+     <div>
+      <h4 class="font-semibold text-sm mb-4 text-gray-200">Company</h4>
+      <ul class="space-y-2">
+       <li><a href="#" class="text-gray-400 text-sm hover:text-purple-300 transition-colors">About Us</a></li>
+       <li><a href="#" class="text-gray-400 text-sm hover:text-purple-300 transition-colors">Blog</a></li>
+       <li><a href="#testimonials" class="text-gray-400 text-sm hover:text-purple-300 transition-colors">Student Stories</a></li>
+       <li><a href="#" class="text-gray-400 text-sm hover:text-purple-300 transition-colors">Careers</a></li>
+      </ul>
+     </div>
+     <div>
+      <h4 class="font-semibold text-sm mb-4 text-gray-200">Contact</h4>
+      <ul class="space-y-3">
+       <li class="flex items-center gap-2 text-gray-400 text-sm"><i data-lucide="mail" style="width:14px;height:14px;flex-shrink:0;color:#818cf8;"></i> hello@codelaunch.io</li>
+       <li class="flex items-center gap-2 text-gray-400 text-sm"><i data-lucide="phone" style="width:14px;height:14px;flex-shrink:0;color:#818cf8;"></i> +1 (800) 555-CODE</li>
+       <li class="flex items-start gap-2 text-gray-400 text-sm"><i data-lucide="map-pin" style="width:14px;height:14px;flex-shrink:0;color:#818cf8;margin-top:2px;"></i> 340 Pine St, San Francisco, CA 94104</li>
+      </ul>
+     </div>
+    </div>
+    <div class="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+     <p class="text-gray-500 text-xs">© 2024 CodeLaunch Bootcamp. All rights reserved.</p>
+     <div class="flex gap-6"><a href="#" class="text-gray-500 text-xs hover:text-gray-300 transition-colors">Privacy Policy</a> <a href="#" class="text-gray-500 text-xs hover:text-gray-300 transition-colors">Terms of Service</a> <a href="#" class="text-gray-500 text-xs hover:text-gray-300 transition-colors">Cookie Policy</a>
+     </div>
+    </div>
+   </div>
+  </footer>
+  <script>
+    // Mobile menu
+    function toggleMobile() {
+      const m = document.getElementById('mobile-menu');
+      m.classList.toggle('open');
+    }
+
+    // FAQ data
+    const faqs = [
+      { q: "Do I need prior coding experience?", a: "No experience required! We start from the very basics of HTML and CSS. Our curriculum is designed for complete beginners, though some comfort with computers helps." },
+      { q: "Is this bootcamp full-time or part-time?", a: "The primary program is full-time (40 hrs/week) over 12 weeks. We also offer a part-time evening track over 24 weeks for working professionals." },
+      { q: "How does the job guarantee work?", a: "If you complete the program, meet all graduation requirements, and don't land a job within 180 days, we'll refund 100% of your tuition — no questions asked. It's that simple." },
+      { q: "What's the typical class size?", a: "Each cohort is capped at 30 students to ensure every person gets attention from instructors. You'll never be lost in a crowd." },
+      { q: "Are classes live or pre-recorded?", a: "All instruction is live via Zoom with your cohort. Sessions are recorded for review, but live attendance is strongly encouraged for the best experience." },
+      { q: "What technologies will I learn?", a: "You'll master HTML, CSS, JavaScript (ES6+), React, Node.js, Express, MongoDB, PostgreSQL, Git, and deployment to cloud platforms like AWS and Vercel." },
+      { q: "Can I apply for income share while unemployed?", a: "Yes! The Income Share Agreement (ISA) is designed exactly for this. You pay nothing until you land a job earning $60k+ annually." },
+    ];
+
+    const faqList = document.getElementById('faq-list');
+    faqs.forEach((f, i) => {
+      const div = document.createElement('div');
+      div.className = 'faq-item py-1';
+      div.innerHTML = `
+        <button class="w-full text-left flex items-center justify-between py-4 px-2 gap-4" onclick="toggleFaq(${i})">
+          <span class="font-semibold text-sm sm:text-base pr-4">${f.q}</span>
+          <i data-lucide="chevron-down" id="faq-icon-${i}" style="width:18px;height:18px;flex-shrink:0;color:#818cf8;transition:transform 0.3s;"></i>
+        </button>
+        <div id="faq-answer-${i}" class="faq-answer px-2 pb-4 text-gray-400 text-sm leading-relaxed">${f.a}</div>
+      `;
+      faqList.appendChild(div);
+    });
+
+    function toggleFaq(i) {
+      const ans = document.getElementById(`faq-answer-${i}`);
+      const icon = document.getElementById(`faq-icon-${i}`);
+      const isOpen = ans.classList.contains('open');
+      // close all
+      document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
+      document.querySelectorAll('[id^="faq-icon-"]').forEach(ic => ic.style.transform = 'rotate(0deg)');
+      if (!isOpen) {
+        ans.classList.add('open');
+        icon.style.transform = 'rotate(180deg)';
+      }
+    }
+
+    // SDK init
+    const defaultConfig = {
+      hero_headline: "Become a Full-Stack Web Developer in 12 Weeks",
+      hero_subtext: "Master modern web development from HTML to React and Node.js. Learn from industry veterans, build real products, and land your dream tech job — guaranteed.",
+      cta_button_text: "Enroll Now",
+      bootcamp_name: "CodeLaunch",
+      // colors
+      background_color: "#070711",
+      accent_color: "#6366f1",
+      text_color: "#ffffff",
+      button_color: "#8b5cf6",
+      surface_color: "#0f0f23",
+      font_family: "Plus Jakarta Sans",
+      font_size: 16
+    };
+
+    window.elementSdk && window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => {
+        const headline = document.getElementById('hero-headline');
+        const subtext = document.getElementById('hero-subtext');
+        const cta = document.getElementById('hero-cta');
+        const navBrand = document.getElementById('nav-brand');
+        const footerBrand = document.getElementById('footer-brand');
+        if (headline) headline.innerHTML = config.hero_headline || defaultConfig.hero_headline;
+        if (subtext) subtext.textContent = config.hero_subtext || defaultConfig.hero_subtext;
+        if (cta) cta.innerHTML = (config.cta_button_text || defaultConfig.cta_button_text) + ' <i data-lucide="arrow-right" style="width:18px;height:18px;display:inline;"></i>';
+        const name = config.bootcamp_name || defaultConfig.bootcamp_name;
+        if (navBrand) navBrand.textContent = name;
+        if (footerBrand) footerBrand.textContent = name;
+        // font
+        const font = config.font_family || defaultConfig.font_family;
+        const size = config.font_size || defaultConfig.font_size;
+        document.body.style.fontFamily = `'${font}', 'Plus Jakarta Sans', sans-serif`;
+        document.body.style.fontSize = `${size}px`;
+        lucide.createIcons();
+      },
+      mapToCapabilities: (config) => ({
+        recolorables: [
+          { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+          { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+          { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+          { get: () => config.accent_color || defaultConfig.accent_color, set: (v) => { config.accent_color = v; window.elementSdk.setConfig({ accent_color: v }); } },
+          { get: () => config.button_color || defaultConfig.button_color, set: (v) => { config.button_color = v; window.elementSdk.setConfig({ button_color: v }); } },
+        ],
+        borderables: [],
+        fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
+        fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); } }
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ["hero_headline", config.hero_headline || defaultConfig.hero_headline],
+        ["hero_subtext", config.hero_subtext || defaultConfig.hero_subtext],
+        ["cta_button_text", config.cta_button_text || defaultConfig.cta_button_text],
+        ["bootcamp_name", config.bootcamp_name || defaultConfig.bootcamp_name],
+      ])
+    });
+
+    lucide.createIcons();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e239c0ef0163bbc',t:'MTc3NDUwMTQxNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
