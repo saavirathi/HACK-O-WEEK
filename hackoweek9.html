@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Info Panel</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Quicksand', sans-serif; }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes pulse-soft {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .weather-card {
+      animation: fadeInUp 0.6s ease-out forwards;
+      opacity: 0;
+    }
+    
+    .weather-card:nth-child(1) { animation-delay: 0.1s; }
+    .weather-card:nth-child(2) { animation-delay: 0.25s; }
+    .weather-card:nth-child(3) { animation-delay: 0.4s; }
+    
+    .weather-icon {
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    .weather-card:nth-child(2) .weather-icon { animation-delay: 0.5s; }
+    .weather-card:nth-child(3) .weather-icon { animation-delay: 1s; }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%);
+    }
+    
+    .card-gradient {
+      background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+    }
+    
+    .header-text {
+      background: linear-gradient(135deg, #0369a1 0%, #0284c7 50%, #0ea5e9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div id="app-wrapper" class="w-full h-full gradient-bg overflow-auto">
+   <div class="min-h-full flex flex-col"><!-- Header -->
+    <header class="text-center py-8 md:py-12">
+     <div class="max-w-4xl mx-auto px-4">
+      <h1 id="main-title" class="text-3xl md:text-4xl lg:text-5xl font-bold header-text mb-3">Simple Weather Info Panel</h1>
+      <p id="subtitle" class="text-base md:text-lg font-medium" style="color: #0369a1;">Static Weather Dashboard</p>
+      <div class="mt-4 w-24 h-1 mx-auto rounded-full" style="background: linear-gradient(90deg, #0ea5e9, #38bdf8, #7dd3fc);"></div>
+     </div>
+    </header><!-- Main Section -->
+    <main class="flex-1 px-4 md:px-8 pb-8">
+     <div class="max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8"><!-- London Card -->
+       <div class="weather-card card-gradient rounded-3xl p-6 lg:p-8 shadow-xl shadow-sky-200/50 border border-sky-100 hover:shadow-2xl hover:shadow-sky-300/50 transition-all duration-300 hover:-translate-y-1">
+        <div class="text-center">
+         <h2 class="text-xl lg:text-2xl font-bold mb-1" style="color: #0c4a6e;">London</h2>
+         <p class="text-sm font-medium mb-4" style="color: #64748b;">United Kingdom</p><!-- Cloudy Icon -->
+         <div class="weather-icon mx-auto mb-4 w-24 h-24 lg:w-28 lg:h-28">
+          <svg viewbox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="60" rx="35" ry="20" fill="#cbd5e1" /> <ellipse cx="35" cy="55" rx="20" ry="15" fill="#e2e8f0" /> <ellipse cx="60" cy="50" rx="22" ry="18" fill="#f1f5f9" /> <ellipse cx="45" cy="48" rx="18" ry="14" fill="#f8fafc" />
+          </svg>
+         </div>
+         <div class="text-5xl lg:text-6xl font-bold mb-2" style="color: #0284c7;">
+          15°C
+         </div>
+         <p class="text-lg font-semibold mb-6" style="color: #64748b;">Cloudy</p>
+         <div class="flex justify-around pt-4 border-t border-sky-100">
+          <div class="text-center">
+           <div class="flex items-center justify-center gap-1 mb-1">
+            <svg class="w-4 h-4" fill="#0ea5e9" viewbox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+            </svg><span class="text-xs font-medium" style="color: #64748b;">Humidity</span>
+           </div>
+           <p class="text-lg font-bold" style="color: #0369a1;">70%</p>
+          </div>
+          <div class="text-center">
+           <div class="flex items-center justify-center gap-1 mb-1">
+            <svg class="w-4 h-4" fill="#0ea5e9" viewbox="0 0 24 24"><path d="M14.5 17c0 1.65-1.35 3-3 3s-3-1.35-3-3c0-1.65 1.35-3 3-3s3 1.35 3 3zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 14.5c0 .83-.67 1.5-1.5 1.5h-3c-.83 0-1.5-.67-1.5-1.5V16h6v1.5z" />
+            </svg><span class="text-xs font-medium" style="color: #64748b;">Wind</span>
+           </div>
+           <p class="text-lg font-bold" style="color: #0369a1;">10 km/h</p>
+          </div>
+         </div>
+        </div>
+       </div><!-- New York Card -->
+       <div class="weather-card card-gradient rounded-3xl p-6 lg:p-8 shadow-xl shadow-sky-200/50 border border-sky-100 hover:shadow-2xl hover:shadow-sky-300/50 transition-all duration-300 hover:-translate-y-1">
+        <div class="text-center">
+         <h2 class="text-xl lg:text-2xl font-bold mb-1" style="color: #0c4a6e;">New York</h2>
+         <p class="text-sm font-medium mb-4" style="color: #64748b;">United States</p><!-- Sunny Icon -->
+         <div class="weather-icon mx-auto mb-4 w-24 h-24 lg:w-28 lg:h-28">
+          <svg viewbox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="20" fill="#fbbf24" /> <circle cx="50" cy="50" r="16" fill="#fcd34d" /> <!-- Sun rays --> <rect x="48" y="15" width="4" height="12" rx="2" fill="#fbbf24" /> <rect x="48" y="73" width="4" height="12" rx="2" fill="#fbbf24" /> <rect x="15" y="48" width="12" height="4" rx="2" fill="#fbbf24" /> <rect x="73" y="48" width="12" height="4" rx="2" fill="#fbbf24" /> <rect x="23" y="23" width="4" height="12" rx="2" transform="rotate(-45 25 29)" fill="#fbbf24" /> <rect x="69" y="69" width="4" height="12" rx="2" transform="rotate(-45 71 75)" fill="#fbbf24" /> <rect x="23" y="69" width="4" height="12" rx="2" transform="rotate(45 25 75)" fill="#fbbf24" /> <rect x="69" y="23" width="4" height="12" rx="2" transform="rotate(45 71 29)" fill="#fbbf24" />
+          </svg>
+         </div>
+         <div class="text-5xl lg:text-6xl font-bold mb-2" style="color: #f59e0b;">
+          22°C
+         </div>
+         <p class="text-lg font-semibold mb-6" style="color: #64748b;">Sunny</p>
+         <div class="flex justify-around pt-4 border-t border-sky-100">
+          <div class="text-center">
+           <div class="flex items-center justify-center gap-1 mb-1">
+            <svg class="w-4 h-4" fill="#0ea5e9" viewbox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+            </svg><span class="text-xs font-medium" style="color: #64748b;">Humidity</span>
+           </div>
+           <p class="text-lg font-bold" style="color: #0369a1;">55%</p>
+          </div>
+          <div class="text-center">
+           <div class="flex items-center justify-center gap-1 mb-1">
+            <svg class="w-4 h-4" fill="#0ea5e9" viewbox="0 0 24 24"><path d="M14.5 17c0 1.65-1.35 3-3 3s-3-1.35-3-3c0-1.65 1.35-3 3-3s3 1.35 3 3zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 14.5c0 .83-.67 1.5-1.5 1.5h-3c-.83 0-1.5-.67-1.5-1.5V16h6v1.5z" />
+            </svg><span class="text-xs font-medium" style="color: #64748b;">Wind</span>
+           </div>
+           <p class="text-lg font-bold" style="color: #0369a1;">8 km/h</p>
+          </div>
+         </div>
+        </div>
+       </div><!-- Tokyo Card -->
+       <div class="weather-card card-gradient rounded-3xl p-6 lg:p-8 shadow-xl shadow-sky-200/50 border border-sky-100 hover:shadow-2xl hover:shadow-sky-300/50 transition-all duration-300 hover:-translate-y-1">
+        <div class="text-center">
+         <h2 class="text-xl lg:text-2xl font-bold mb-1" style="color: #0c4a6e;">Tokyo</h2>
+         <p class="text-sm font-medium mb-4" style="color: #64748b;">Japan</p><!-- Rainy Icon -->
+         <div class="weather-icon mx-auto mb-4 w-24 h-24 lg:w-28 lg:h-28">
+          <svg viewbox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="50" cy="40" rx="30" ry="18" fill="#94a3b8" /> <ellipse cx="35" cy="36" rx="18" ry="13" fill="#cbd5e1" /> <ellipse cx="58" cy="33" rx="20" ry="15" fill="#e2e8f0" /> <!-- Rain drops --> <rect x="30" y="60" width="3" height="10" rx="1.5" fill="#38bdf8" /> <rect x="42" y="65" width="3" height="12" rx="1.5" fill="#38bdf8" /> <rect x="54" y="58" width="3" height="14" rx="1.5" fill="#38bdf8" /> <rect x="66" y="63" width="3" height="10" rx="1.5" fill="#38bdf8" /> <rect x="36" y="75" width="3" height="8" rx="1.5" fill="#7dd3fc" /> <rect x="48" y="78" width="3" height="10" rx="1.5" fill="#7dd3fc" /> <rect x="60" y="74" width="3" height="8" rx="1.5" fill="#7dd3fc" />
+          </svg>
+         </div>
+         <div class="text-5xl lg:text-6xl font-bold mb-2" style="color: #0ea5e9;">
+          18°C
+         </div>
+         <p class="text-lg font-semibold mb-6" style="color: #64748b;">Rainy</p>
+         <div class="flex justify-around pt-4 border-t border-sky-100">
+          <div class="text-center">
+           <div class="flex items-center justify-center gap-1 mb-1">
+            <svg class="w-4 h-4" fill="#0ea5e9" viewbox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+            </svg><span class="text-xs font-medium" style="color: #64748b;">Humidity</span>
+           </div>
+           <p class="text-lg font-bold" style="color: #0369a1;">80%</p>
+          </div>
+          <div class="text-center">
+           <div class="flex items-center justify-center gap-1 mb-1">
+            <svg class="w-4 h-4" fill="#0ea5e9" viewbox="0 0 24 24"><path d="M14.5 17c0 1.65-1.35 3-3 3s-3-1.35-3-3c0-1.65 1.35-3 3-3s3 1.35 3 3zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 14.5c0 .83-.67 1.5-1.5 1.5h-3c-.83 0-1.5-.67-1.5-1.5V16h6v1.5z" />
+            </svg><span class="text-xs font-medium" style="color: #64748b;">Wind</span>
+           </div>
+           <p class="text-lg font-bold" style="color: #0369a1;">12 km/h</p>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </main><!-- Footer -->
+    <footer class="py-6 text-center">
+     <p id="footer-text" class="text-sm font-medium" style="color: #0369a1;">Demo Weather Panel – Static Data Only</p>
+     <div class="mt-2 flex justify-center gap-1"><span class="w-2 h-2 rounded-full" style="background: #7dd3fc;"></span> <span class="w-2 h-2 rounded-full" style="background: #38bdf8;"></span> <span class="w-2 h-2 rounded-full" style="background: #0ea5e9;"></span>
+     </div>
+    </footer>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      main_title: "Simple Weather Info Panel",
+      subtitle: "Static Weather Dashboard",
+      footer_text: "Demo Weather Panel – Static Data Only",
+      background_color: "#bae6fd",
+      card_color: "#ffffff",
+      text_color: "#0c4a6e",
+      accent_color: "#0284c7",
+      secondary_color: "#64748b",
+      font_family: "Quicksand",
+      font_size: 16
+    };
+
+    async function onConfigChange(config) {
+      const mainTitle = document.getElementById('main-title');
+      const subtitle = document.getElementById('subtitle');
+      const footerText = document.getElementById('footer-text');
+
+      if (mainTitle) mainTitle.textContent = config.main_title || defaultConfig.main_title;
+      if (subtitle) subtitle.textContent = config.subtitle || defaultConfig.subtitle;
+      if (footerText) footerText.textContent = config.footer_text || defaultConfig.footer_text;
+
+      // Apply colors
+      const bgColor = config.background_color || defaultConfig.background_color;
+      const cardColor = config.card_color || defaultConfig.card_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const accentColor = config.accent_color || defaultConfig.accent_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+
+      document.getElementById('app-wrapper').style.background = `linear-gradient(135deg, ${bgColor}20 0%, ${bgColor} 50%, ${bgColor}dd 100%)`;
+
+      document.querySelectorAll('.weather-card').forEach(card => {
+        card.style.background = `linear-gradient(180deg, ${cardColor} 0%, ${bgColor}30 100%)`;
+      });
+
+      document.querySelectorAll('.weather-card h2').forEach(el => el.style.color = textColor);
+      
+      if (subtitle) subtitle.style.color = accentColor;
+      if (footerText) footerText.style.color = accentColor;
+
+      // Apply font
+      const fontFamily = config.font_family || defaultConfig.font_family;
+      const baseSize = config.font_size || defaultConfig.font_size;
+      document.body.style.fontFamily = `${fontFamily}, sans-serif`;
+
+      if (mainTitle) mainTitle.style.fontSize = `${baseSize * 2.5}px`;
+      if (subtitle) subtitle.style.fontSize = `${baseSize * 1.125}px`;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => { config.background_color = value; window.elementSdk.setConfig({ background_color: value }); }
+          },
+          {
+            get: () => config.card_color || defaultConfig.card_color,
+            set: (value) => { config.card_color = value; window.elementSdk.setConfig({ card_color: value }); }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => { config.text_color = value; window.elementSdk.setConfig({ text_color: value }); }
+          },
+          {
+            get: () => config.accent_color || defaultConfig.accent_color,
+            set: (value) => { config.accent_color = value; window.elementSdk.setConfig({ accent_color: value }); }
+          },
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => { config.secondary_color = value; window.elementSdk.setConfig({ secondary_color: value }); }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: (value) => { config.font_family = value; window.elementSdk.setConfig({ font_family: value }); }
+        },
+        fontSizeable: {
+          get: () => config.font_size || defaultConfig.font_size,
+          set: (value) => { config.font_size = value; window.elementSdk.setConfig({ font_size: value }); }
+        }
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["main_title", config.main_title || defaultConfig.main_title],
+        ["subtitle", config.subtitle || defaultConfig.subtitle],
+        ["footer_text", config.footer_text || defaultConfig.footer_text]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9db02b11f73defdc',t:'MTc3MzI5MDkyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
