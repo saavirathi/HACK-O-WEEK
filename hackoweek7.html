@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily To-Do List</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Figtree', sans-serif; }
+    
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .task-item {
+      animation: slideInUp 0.4s ease-out;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #dcfce7 100%);
+    }
+    
+    .header-gradient {
+      background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+    }
+    
+    .input-field {
+      transition: all 0.3s ease;
+      border: 2px solid #e5e7eb;
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+    
+    .add-btn {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .add-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+    }
+    
+    .add-btn:active {
+      transform: translateY(0);
+    }
+    
+    .task-card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    .task-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-color: #d1d5db;
+    }
+    
+    .task-checkbox {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      accent-color: #10b981;
+      flex-shrink: 0;
+    }
+    
+    .task-text {
+      flex: 1;
+      font-size: 16px;
+      color: #374151;
+      transition: all 0.3s ease;
+    }
+    
+    .task-text.completed {
+      text-decoration: line-through;
+      color: #9ca3af;
+    }
+    
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 8px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .delete-btn:hover {
+      color: #ef4444;
+      transform: scale(1.1);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #9ca3af;
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.6;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full">
+  <div id="app-wrapper" class="w-full h-full gradient-bg overflow-auto">
+   <div class="min-h-full flex flex-col"><!-- Header -->
+    <header class="header-gradient text-white text-center py-8 md:py-12 shadow-md">
+     <div class="max-w-4xl mx-auto px-4">
+      <div class="flex justify-center mb-4">
+       <svg class="w-10 h-10 md:w-14 md:h-14" fill="currentColor" viewbox="0 0 24 24">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5.04-6.71l-2.75 3.54-2.08-2.08-1.42 1.42 3.5 3.5 4.16-5.33z" />
+       </svg>
+      </div>
+      <h1 id="main-title" class="text-3xl md:text-4xl lg:text-5xl font-bold mb-3">My Daily To-Do List</h1>
+      <p id="subtitle" class="text-base md:text-lg font-medium opacity-95">Stay organized and complete your tasks</p>
+     </div>
+    </header><!-- Main Content -->
+    <main class="flex-1 px-4 md:px-8 py-8">
+     <div class="max-w-2xl mx-auto"><!-- Input Section -->
+      <div class="bg-white rounded-2xl p-6 shadow-md mb-8 border border-emerald-100">
+       <form id="add-task-form" class="flex flex-col sm:flex-row gap-3"><input id="task-input" type="text" placeholder="Enter a new task..." class="input-field flex-1 px-4 py-3 rounded-lg text-base" autocomplete="off"> <button type="submit" class="add-btn text-white font-semibold py-3 px-6 rounded-lg hover:shadow-lg transition-all whitespace-nowrap"> <span id="btn-text">Add Task</span> <span id="btn-spinner" class="loading-spinner hidden"></span> </button>
+       </form>
+      </div><!-- Task List Section -->
+      <div id="task-list-container" class="space-y-3"><!-- Tasks will be rendered here -->
+      </div><!-- Empty State -->
+      <div id="empty-state" class="hidden">
+       <div class="bg-white rounded-2xl p-8 text-center border border-emerald-100">
+        <div class="empty-state-icon">
+         ✅
+        </div>
+        <p class="text-lg font-medium text-gray-600">No tasks yet!</p>
+        <p class="text-sm text-gray-500 mt-2">Add a task above to get started.</p>
+       </div>
+      </div>
+     </div>
+    </main><!-- Footer -->
+    <footer class="py-6 text-center bg-white/60 border-t border-emerald-200 mt-8">
+     <p id="footer-text" class="text-sm font-medium text-gray-600">Simple Productivity To-Do App</p>
+    </footer>
+   </div>
+  </div>
+  <script>
+    let currentTasks = [];
+
+    const defaultConfig = {
+      main_title: "My Daily To-Do List",
+      subtitle: "Stay organized and complete your tasks",
+      footer_text: "Simple Productivity To-Do App",
+      primary_color: "#10b981",
+      accent_color: "#ecfdf5",
+      text_color: "#1f2937",
+      font_family: "Figtree",
+      font_size: 16
+    };
+
+    // Data handler for SDK
+    const dataHandler = {
+      onDataChanged(data) {
+        currentTasks = data;
+        renderTasks();
+      }
+    };
+
+    async function initializeSDK() {
+      if (!window.dataSdk) return;
+      
+      const result = await window.dataSdk.init(dataHandler);
+      if (!result.isOk) {
+        console.error("Failed to initialize data SDK");
+      }
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('task-list-container');
+      const emptyState = document.getElementById('empty-state');
+
+      if (currentTasks.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      const existingTasks = new Map(
+        [...container.children].map(el => [el.dataset.taskId, el])
+      );
+
+      currentTasks.forEach(task => {
+        if (existingTasks.has(task.__backendId)) {
+          updateTaskElement(existingTasks.get(task.__backendId), task);
+          existingTasks.delete(task.__backendId);
+        } else {
+          container.appendChild(createTaskElement(task));
+        }
+      });
+
+      existingTasks.forEach(el => el.remove());
+    }
+
+    function createTaskElement(task) {
+      const div = document.createElement('div');
+      div.className = 'task-item task-card';
+      div.dataset.taskId = task.__backendId;
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'task-checkbox';
+      checkbox.checked = task.completed;
+      checkbox.addEventListener('change', () => toggleTask(task));
+
+      const text = document.createElement('span');
+      text.className = 'task-text' + (task.completed ? ' completed' : '');
+      text.textContent = task.text;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" /></svg>';
+      deleteBtn.addEventListener('click', () => deleteTask(task));
+
+      div.appendChild(checkbox);
+      div.appendChild(text);
+      div.appendChild(deleteBtn);
+
+      return div;
+    }
+
+    function updateTaskElement(element, task) {
+      const checkbox = element.querySelector('.task-checkbox');
+      const text = element.querySelector('.task-text');
+
+      checkbox.checked = task.completed;
+      text.textContent = task.text;
+      text.classList.toggle('completed', task.completed);
+    }
+
+    async function toggleTask(task) {
+      const updatedTask = { ...task, completed: !task.completed };
+      const result = await window.dataSdk.update(updatedTask);
+      if (!result.isOk) {
+        console.error("Failed to update task");
+      }
+    }
+
+    async function deleteTask(task) {
+      const result = await window.dataSdk.delete(task);
+      if (!result.isOk) {
+        console.error("Failed to delete task");
+      }
+    }
+
+    async function addTask(text) {
+      if (!text.trim()) return;
+
+      const btnText = document.getElementById('btn-text');
+      const btnSpinner = document.getElementById('btn-spinner');
+      const submitBtn = document.querySelector('button[type="submit"]');
+      
+      btnText.classList.add('hidden');
+      btnSpinner.classList.remove('hidden');
+      submitBtn.disabled = true;
+
+      if (currentTasks.length >= 999) {
+        alert('Maximum limit of 999 tasks reached. Please delete some tasks first.');
+        btnText.classList.remove('hidden');
+        btnSpinner.classList.add('hidden');
+        submitBtn.disabled = false;
+        return;
+      }
+
+      const result = await window.dataSdk.create({
+        text: text.trim(),
+        completed: false,
+        createdAt: new Date().toISOString()
+      });
+
+      btnText.classList.remove('hidden');
+      btnSpinner.classList.add('hidden');
+      submitBtn.disabled = false;
+
+      if (result.isOk) {
+        document.getElementById('task-input').value = '';
+      } else {
+        console.error("Failed to create task");
+      }
+    }
+
+    document.getElementById('add-task-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('task-input');
+      addTask(input.value);
+    });
+
+    // Element SDK Configuration
+    async function onConfigChange(config) {
+      const mainTitle = document.getElementById('main-title');
+      const subtitle = document.getElementById('subtitle');
+      const footerText = document.getElementById('footer-text');
+
+      if (mainTitle) mainTitle.textContent = config.main_title || defaultConfig.main_title;
+      if (subtitle) subtitle.textContent = config.subtitle || defaultConfig.subtitle;
+      if (footerText) footerText.textContent = config.footer_text || defaultConfig.footer_text;
+
+      const fontFamily = config.font_family || defaultConfig.font_family;
+      const baseSize = config.font_size || defaultConfig.font_size;
+      document.body.style.fontFamily = `${fontFamily}, sans-serif`;
+
+      if (mainTitle) mainTitle.style.fontSize = `${baseSize * 1.875}px`;
+      if (subtitle) subtitle.style.fontSize = `${baseSize * 1.125}px`;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => { config.primary_color = value; window.elementSdk.setConfig({ primary_color: value }); }
+          },
+          {
+            get: () => config.accent_color || defaultConfig.accent_color,
+            set: (value) => { config.accent_color = value; window.elementSdk.setConfig({ accent_color: value }); }
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => { config.text_color = value; window.elementSdk.setConfig({ text_color: value }); }
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: (value) => { config.font_family = value; window.elementSdk.setConfig({ font_family: value }); }
+        },
+        fontSizeable: {
+          get: () => config.font_size || defaultConfig.font_size,
+          set: (value) => { config.font_size = value; window.elementSdk.setConfig({ font_size: value }); }
+        }
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ["main_title", config.main_title || defaultConfig.main_title],
+        ["subtitle", config.subtitle || defaultConfig.subtitle],
+        ["footer_text", config.footer_text || defaultConfig.footer_text]
+      ]);
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+
+    // Initialize the app
+    initializeSDK();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9db038399730efdc',t:'MTc3MzI5MTQ2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
