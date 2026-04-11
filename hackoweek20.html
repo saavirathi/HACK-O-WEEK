@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam Score Tracker</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
+    
+    body {
+      background: linear-gradient(135deg, #f0f4f8 0%, #e8eef5 100%);
+      font-family: 'Inter', sans-serif;
+      color: #2c3e50;
+    }
+    
+    .dashboard-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+    
+    .dashboard-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    
+    .header-icon {
+      width: 32px;
+      height: 32px;
+      color: #fff;
+    }
+    
+    .header-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+    }
+    
+    .header-subtitle {
+      font-size: 12px;
+      opacity: 0.9;
+      margin: 4px 0 0 0;
+    }
+    
+    .dashboard-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      grid-auto-rows: max-content;
+    }
+    
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e8eef5;
+      transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #7f8c9a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
+    }
+    
+    .stat-change {
+      font-size: 12px;
+      color: #7f8c9a;
+    }
+    
+    .input-section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e8eef5;
+      grid-column: 1 / -1;
+    }
+    
+    .input-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .score-input {
+      flex: 1;
+      min-width: 140px;
+      background: #f7fafc;
+      border: 2px solid #e8eef5;
+      color: #2c3e50;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+    }
+    
+    .score-input:focus {
+      outline: none;
+      border-color: #667eea;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .score-input::placeholder {
+      color: #b8c5d6;
+    }
+    
+    .add-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .add-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+    }
+    
+    .histogram-section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e8eef5;
+      grid-column: 1 / -1;
+    }
+    
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #2c3e50;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 16px 0;
+    }
+    
+    .histogram {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      height: 200px;
+      gap: 8px;
+    }
+    
+    .bar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+    
+    .bar {
+      width: 100%;
+      background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+      border-radius: 4px 4px 0 0;
+      transition: all 0.3s ease;
+      min-height: 4px;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    }
+    
+    .bar:hover {
+      opacity: 0.8;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+    }
+    
+    .bar-label {
+      font-size: 11px;
+      color: #7f8c9a;
+      font-weight: 600;
+      text-align: center;
+    }
+    
+    .bar-count {
+      font-size: 10px;
+      color: #b8c5d6;
+      margin-top: 4px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #b8c5d6;
+    }
+    
+    .empty-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 12px;
+      opacity: 0.4;
+    }
+    
+    .scores-list {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e8eef5;
+      grid-column: 1 / -1;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .score-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: #f7fafc;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+    
+    .score-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .score-item:hover {
+      background: #eef1f6;
+    }
+    
+    .score-item-value {
+      font-weight: 700;
+      color: #667eea;
+      min-width: 50px;
+    }
+    
+    .score-item-badge {
+      background: #e8eef5;
+      color: #667eea;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      min-width: 50px;
+      text-align: center;
+    }
+    
+    .delete-score-btn {
+      background: #fee;
+      color: #ef4444;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      margin-left: 8px;
+    }
+    
+    .delete-score-btn:hover {
+      background: #fdd;
+      transform: scale(1.1);
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .score-item {
+      animation: slideIn 0.3s ease;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f0f4f8;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #d1d8e0;
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #bcc5d0;
+    }
+  </style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full">
+  <div class="dashboard-wrapper"><!-- Header -->
+   <div class="dashboard-header"><i data-lucide="bar-chart-3" class="header-icon"></i>
+    <div>
+     <div class="header-title" id="dashboardTitle">
+      Exam Score Tracker
+     </div>
+     <p class="header-subtitle" id="subjectName">Mathematics</p>
+    </div>
+   </div><!-- Content -->
+   <div class="dashboard-content"><!-- Stats Cards -->
+    <div class="stat-card">
+     <div class="stat-label">
+      Highest Score
+     </div>
+     <div class="stat-value" id="maxScore">
+      —
+     </div>
+     <div class="stat-change" id="maxLabel">
+      No data yet
+     </div>
+    </div>
+    <div class="stat-card">
+     <div class="stat-label">
+      Lowest Score
+     </div>
+     <div class="stat-value" id="minScore">
+      —
+     </div>
+     <div class="stat-change" id="minLabel">
+      No data yet
+     </div>
+    </div>
+    <div class="stat-card">
+     <div class="stat-label">
+      Average Score
+     </div>
+     <div class="stat-value" id="avgScore">
+      —
+     </div>
+     <div class="stat-change" id="avgLabel">
+      0 scores added
+     </div>
+    </div>
+    <div class="stat-card">
+     <div class="stat-label">
+      Most Frequent (Mode)
+     </div>
+     <div class="stat-value" id="modeScore">
+      —
+     </div>
+     <div class="stat-change" id="modeLabel">
+      No data yet
+     </div>
+    </div><!-- Input Section -->
+    <div class="input-section">
+     <h3 class="section-title">Add New Score</h3>
+     <div class="input-group"><input type="number" class="score-input" id="scoreInput" placeholder="Enter score (0-100)" min="0" max="100"> <button class="add-btn" id="addScoreBtn"> <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add Score </button>
+     </div>
+    </div><!-- Histogram -->
+    <div class="histogram-section">
+     <h3 class="section-title">Score Distribution Histogram</h3>
+     <div class="histogram" id="histogramContainer">
+      <div class="empty-state"><i data-lucide="activity" class="empty-icon"></i>
+       <p>No scores yet. Add scores to see distribution.</p>
+      </div>
+     </div>
+    </div><!-- Scores List -->
+    <div class="scores-list">
+     <h3 class="section-title">Recent Scores</h3>
+     <div id="scoresList">
+      <div class="empty-state" style="padding: 20px;">
+       <p>No scores recorded yet</p>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    // Frequency Array Data Structure
+    let scores = [];
+    let frequencyArray = new Array(101).fill(0); // 0-100 range
+    
+    function calculateStats() {
+      if (scores.length === 0) {
+        return {
+          min: null,
+          max: null,
+          avg: null,
+          mode: null
+        };
+      }
+      
+      const min = Math.min(...scores);
+      const max = Math.max(...scores);
+      const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+      
+      // Find mode (most frequent)
+      let maxFreq = 0;
+      let mode = null;
+      for (let i = 0; i <= 100; i++) {
+        if (frequencyArray[i] > maxFreq) {
+          maxFreq = frequencyArray[i];
+          mode = i;
+        }
+      }
+      
+      return { min, max, avg, mode };
+    }
+    
+    function updateHistogram() {
+      const container = document.getElementById('histogramContainer');
+      
+      if (scores.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="width: 100%;">
+            <i data-lucide="activity" class="empty-icon"></i>
+            <p>No scores yet. Add scores to see distribution.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+      
+      // Create 10 bins for better visualization
+      const bins = 10;
+      const maxScore = 100;
+      const binSize = maxScore / bins;
+      const histogram = new Array(bins).fill(0);
+      
+      scores.forEach(score => {
+        const binIndex = Math.min(Math.floor(score / binSize), bins - 1);
+        histogram[binIndex]++;
+      });
+      
+      const maxCount = Math.max(...histogram);
+      
+      const html = histogram.map((count, idx) => {
+        const binStart = Math.round(idx * binSize);
+        const binEnd = Math.round((idx + 1) * binSize);
+        const height = maxCount > 0 ? (count / maxCount) * 100 : 0;
+        
+        return `
+          <div class="bar-container">
+            <div class="bar" style="height: ${height}%;"></div>
+            <div class="bar-label">${binStart}-${binEnd}</div>
+            <div class="bar-count">${count}</div>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+      lucide.createIcons();
+    }
+    
+    function updateStats() {
+      const stats = calculateStats();
+      
+      if (stats.min === null) {
+        document.getElementById('maxScore').textContent = '—';
+        document.getElementById('maxLabel').textContent = 'No data yet';
+        document.getElementById('minScore').textContent = '—';
+        document.getElementById('minLabel').textContent = 'No data yet';
+        document.getElementById('avgScore').textContent = '—';
+        document.getElementById('avgLabel').textContent = '0 scores added';
+        document.getElementById('modeScore').textContent = '—';
+        document.getElementById('modeLabel').textContent = 'No data yet';
+      } else {
+        document.getElementById('maxScore').textContent = stats.max;
+        document.getElementById('maxLabel').textContent = `Peak performance`;
+        document.getElementById('minScore').textContent = stats.min;
+        document.getElementById('minLabel').textContent = `Lowest attempt`;
+        document.getElementById('avgScore').textContent = stats.avg;
+        document.getElementById('avgLabel').textContent = `From ${scores.length} scores`;
+        document.getElementById('modeScore').textContent = stats.mode !== null ? stats.mode : '—';
+        document.getElementById('modeLabel').textContent = stats.mode !== null ? `Appeared ${frequencyArray[stats.mode]} times` : 'No mode yet';
+      }
+    }
+    
+    function updateScoresList() {
+      const container = document.getElementById('scoresList');
+      
+      if (scores.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="padding: 20px;">
+            <p>No scores recorded yet</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Show last 10 scores in reverse order
+      const recentScores = [...scores].slice(-10).reverse();
+      
+      const html = recentScores.map((score, idx) => {
+        let badge = 'Average';
+        if (score >= 80) badge = 'Excellent';
+        else if (score >= 70) badge = 'Good';
+        else if (score >= 60) badge = 'Fair';
+        else badge = 'Needs Work';
+        
+        return `
+          <div class="score-item">
+            <span>${score}</span>
+            <span class="score-item-badge">${badge}</span>
+            <button class="delete-score-btn" onclick="deleteScore(event, ${scores.length - 10 + idx})">
+              <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+      lucide.createIcons();
+    }
+    
+    function addScore() {
+      const input = document.getElementById('scoreInput');
+      const score = parseInt(input.value);
+      
+      if (isNaN(score) || score < 0 || score > 100) {
+        alert('Please enter a valid score (0-100)');
+        return;
+      }
+      
+      scores.push(score);
+      frequencyArray[score]++;
+      input.value = '';
+      
+      updateStats();
+      updateHistogram();
+      updateScoresList();
+    }
+    
+    function deleteScore(event, index) {
+      event.stopPropagation();
+      const score = scores[index];
+      scores.splice(index, 1);
+      frequencyArray[score]--;
+      
+      updateStats();
+      updateHistogram();
+      updateScoresList();
+    }
+    
+    // Event listeners
+    document.getElementById('addScoreBtn').addEventListener('click', addScore);
+    document.getElementById('scoreInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        addScore();
+      }
+    });
+    
+    // Element SDK
+    const defaultConfig = {
+      dashboard_title: 'Exam Score Tracker',
+      subject_name: 'Mathematics',
+      primary_color: '#667eea',
+      secondary_color: '#764ba2',
+      background_color: '#f0f4f8',
+      text_color: '#2c3e50'
+    };
+    
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => {
+        const c = { ...defaultConfig, ...config };
+        document.getElementById('dashboardTitle').textContent = c.dashboard_title;
+        document.getElementById('subjectName').textContent = c.subject_name;
+      },
+      mapToCapabilities: (config) => ({
+        recolorables: [
+          { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => { config.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); } },
+          { get: () => config.secondary_color || defaultConfig.secondary_color, set: (v) => { config.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); } }
+        ],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ['dashboard_title', config.dashboard_title || defaultConfig.dashboard_title],
+        ['subject_name', config.subject_name || defaultConfig.subject_name]
+      ])
+    });
+    
+    // Initialize
+    lucide.createIcons();
+    updateStats();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eac4ffa32283fea',t:'MTc3NTkzNDg0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
