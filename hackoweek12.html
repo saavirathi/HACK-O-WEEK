@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Shopping Cart</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; }
+    * { font-family: 'Outfit', sans-serif; }
+    .mono { font-family: 'Space Mono', monospace; }
+    
+    .app-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .card-glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
+    
+    .fade-in { opacity: 0; animation: fadeIn 0.6s ease-out forwards; }
+    .fade-in.delay-1 { animation-delay: 0.1s; }
+    .fade-in.delay-2 { animation-delay: 0.2s; }
+    .fade-in.delay-3 { animation-delay: 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .pulse-badge { animation: pulseBadge 2s ease-in-out infinite; }
+    @keyframes pulseBadge { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    
+    .node-connect { animation: nodeConnect 1s ease-out forwards; }
+    @keyframes nodeConnect { from { opacity: 0; transform: scaleX(0); } to { opacity: 1; transform: scaleX(1); } }
+    
+    .slide-in-right { animation: slideInRight 0.5s ease-out forwards; }
+    @keyframes slideInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    
+    .item-remove { animation: itemRemove 0.4s ease-out forwards; }
+    @keyframes itemRemove { to { opacity: 0; transform: translateX(100px) scale(0.8); } }
+    
+    .product-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(102, 126, 234, 0.15); }
+    
+    .button-glow { position: relative; overflow: hidden; }
+    .button-glow::after { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.5); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+    .button-glow:active::after { width: 300px; height: 300px; }
+    
+    .scroll-smooth { scroll-behavior: smooth; }
+    
+    .badge-tag { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  </style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full scroll-smooth">
+  <div id="app" class="w-full h-full overflow-auto" style="background: linear-gradient(135deg, #f5f1ff 0%, #f0e6ff 100%);"><!-- Top Bar -->
+   <div class="sticky top-0 z-50 app-gradient text-white px-6 py-4 flex items-center justify-between shadow-lg">
+    <div class="flex items-center gap-3">
+     <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+      <i data-lucide="shopping-cart" style="width:20px;height:20px;"></i>
+     </div>
+     <div>
+      <h1 id="app-title" class="font-bold text-lg">Smart Shopping</h1>
+      <p id="tagline" class="text-xs text-white/80">Instant checkout</p>
+     </div>
+    </div>
+    <div class="flex items-center gap-2">
+     <div id="cart-badge" class="bg-white text-purple-600 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm pulse-badge">
+      0
+     </div>
+    </div>
+   </div><!-- Hero/Dashboard Section -->
+   <div class="px-6 py-8">
+    <div class="space-y-6"><!-- Quick Actions -->
+     <div class="grid grid-cols-2 gap-4"><button id="add-btn" class="card-glass rounded-xl p-4 text-center button-glow transition hover:scale-105 active:scale-95">
+       <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+        <i data-lucide="plus" style="width:20px;height:20px;color:white;"></i>
+       </div><p class="font-semibold text-sm text-gray-800">Add Item</p></button> <button id="remove-btn" class="card-glass rounded-xl p-4 text-center button-glow transition hover:scale-105 active:scale-95">
+       <div class="w-10 h-10 bg-gradient-to-br from-red-400 to-red-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+        <i data-lucide="trash-2" style="width:20px;height:20px;color:white;"></i>
+       </div><p class="font-semibold text-sm text-gray-800">Remove</p></button>
+     </div><!-- Featured Product Preview -->
+     <div class="card-glass rounded-2xl overflow-hidden shadow-xl">
+      <div class="app-gradient h-32 flex items-center justify-center"><i data-lucide="package" style="width:48px;height:48px;color:white;opacity:0.5;"></i>
+      </div>
+      <div class="p-6">
+       <div class="flex justify-between items-start mb-3">
+        <div>
+         <p class="text-xs text-purple-600 font-semibold">Featured</p>
+         <h2 class="text-xl font-bold text-gray-900">Your Cart</h2>
+        </div>
+        <div class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold" id="total-label">
+         0 items
+        </div>
+       </div>
+       <p class="text-sm text-gray-600 mb-4">Add products to see them appear here. Each item is a node in our linked list!</p>
+       <div class="flex gap-2"><button id="view-cart-btn" class="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-2 rounded-lg font-semibold text-sm button-glow">View Cart</button> <button id="clear-btn" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-50">Clear All</button>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div><!-- Live Cart Simulation -->
+   <div class="px-6 py-8">
+    <div class="mb-4">
+     <h2 class="text-2xl font-bold text-gray-900">Live Cart</h2>
+     <p class="text-sm text-gray-600 mt-1">Items are added as linked list nodes</p>
+    </div>
+    <div id="cart-items" class="space-y-3">
+     <div class="text-center py-8 text-gray-400"><i data-lucide="inbox" style="width:40px;height:40px;margin:0 auto 8px;opacity:0.5;"></i>
+      <p class="text-sm">Your cart is empty. Add items to get started!</p>
+     </div>
+    </div>
+   </div><!-- Data Structure Visualization -->
+   <div class="px-6 py-8 bg-white/50">
+    <div class="mb-6">
+     <h2 class="text-2xl font-bold text-gray-900">How Nodes Connect</h2>
+     <p class="text-sm text-gray-600 mt-1">Linked list node connections in real-time</p>
+    </div>
+    <div class="card-glass rounded-2xl p-6 overflow-x-auto">
+     <div class="flex items-center justify-center gap-2 min-w-[600px] py-6"><!-- HEAD -->
+      <div class="text-center">
+       <div class="mono text-[11px] text-purple-600 font-bold mb-1 uppercase tracking-wider">
+        HEAD
+       </div>
+       <div class="w-4 h-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mx-auto"></div>
+      </div><!-- Arrow -->
+      <svg width="32" height="3" viewbox="0 0 32 3"><line x1="0" y1="1.5" x2="24" y2="1.5" stroke="url(#grad1)" stroke-width="2" marker-end="url(#arrowhead)" /> <defs>
+        <lineargradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+         <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+         <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+        </lineargradient>
+        <marker id="arrowhead" markerwidth="10" markerheight="10" refx="9" refy="3" orient="auto">
+         <polygon points="0 0, 10 3, 0 6" fill="#667eea" />
+        </marker>
+       </defs>
+      </svg><!-- Sample Node -->
+      <div class="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg p-3 min-w-[100px] text-center fade-in delay-1">
+       <div class="mono text-[10px] text-purple-700 font-bold mb-1">
+        ID: 101
+       </div>
+       <div class="text-xs font-semibold text-gray-800">
+        Headphones
+       </div>
+       <div class="mono text-[9px] text-purple-600 mt-1">
+        $49
+       </div>
+      </div><!-- Arrow -->
+      <svg width="32" height="3" viewbox="0 0 32 3"><line x1="0" y1="1.5" x2="24" y2="1.5" stroke="url(#grad1)" stroke-width="2" marker-end="url(#arrowhead)" />
+      </svg><!-- Next Node -->
+      <div class="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-300 rounded-lg p-3 min-w-[100px] text-center fade-in delay-2">
+       <div class="mono text-[10px] text-purple-700 font-bold mb-1">
+        ID: 102
+       </div>
+       <div class="text-xs font-semibold text-gray-800">
+        Notebook
+       </div>
+       <div class="mono text-[9px] text-purple-600 mt-1">
+        $12
+       </div>
+      </div><!-- Arrow -->
+      <svg width="32" height="3" viewbox="0 0 32 3"><line x1="0" y1="1.5" x2="24" y2="1.5" stroke="url(#grad1)" stroke-width="2" marker-end="url(#arrowhead)" />
+      </svg><!-- NULL -->
+      <div class="text-center fade-in delay-3">
+       <div class="mono text-[11px] text-gray-500 font-bold mb-1 uppercase">
+        NULL
+       </div>
+       <div class="w-4 h-4 rounded-full border-2 border-dashed border-gray-400 mx-auto"></div>
+      </div>
+     </div>
+    </div>
+   </div><!-- How It Works - Visual Steps -->
+   <div class="px-6 py-8">
+    <div class="mb-6">
+     <h2 class="text-2xl font-bold text-gray-900">How It Works</h2>
+     <p class="text-sm text-gray-600 mt-1">Four simple operations power the system</p>
+    </div>
+    <div class="space-y-4"><!-- Step 1 -->
+     <div class="card-glass rounded-2xl p-6 flex gap-6 items-start fade-in delay-1">
+      <div class="w-12 h-12 rounded-full app-gradient text-white flex items-center justify-center font-bold flex-shrink-0">
+       1
+      </div>
+      <div class="flex-1">
+       <h3 class="font-bold text-gray-900 flex items-center gap-2"><i data-lucide="arrow-down-circle" style="width:18px;height:18px;color:#667eea;"></i> Insert at Head</h3>
+       <p class="text-sm text-gray-600 mt-2">New node created, linked to current head instantly <span class="mono text-purple-600">O(1)</span></p>
+      </div>
+     </div><!-- Step 2 -->
+     <div class="card-glass rounded-2xl p-6 flex gap-6 items-start fade-in delay-2">
+      <div class="w-12 h-12 rounded-full app-gradient text-white flex items-center justify-center font-bold flex-shrink-0">
+       2
+      </div>
+      <div class="flex-1">
+       <h3 class="font-bold text-gray-900 flex items-center gap-2"><i data-lucide="link-2" style="width:18px;height:18px;color:#667eea;"></i> Link Nodes</h3>
+       <p class="text-sm text-gray-600 mt-2">Pointer connections established between nodes <span class="mono text-purple-600">next →</span></p>
+      </div>
+     </div><!-- Step 3 -->
+     <div class="card-glass rounded-2xl p-6 flex gap-6 items-start fade-in delay-3">
+      <div class="w-12 h-12 rounded-full app-gradient text-white flex items-center justify-center font-bold flex-shrink-0">
+       3
+      </div>
+      <div class="flex-1">
+       <h3 class="font-bold text-gray-900 flex items-center gap-2"><i data-lucide="search" style="width:18px;height:18px;color:#667eea;"></i> Find &amp; Delete</h3>
+       <p class="text-sm text-gray-600 mt-2">Traverse list, find node by ID, re-link pointers <span class="mono text-purple-600">O(n)</span></p>
+      </div>
+     </div><!-- Step 4 -->
+     <div class="card-glass rounded-2xl p-6 flex gap-6 items-start fade-in delay-3">
+      <div class="w-12 h-12 rounded-full app-gradient text-white flex items-center justify-center font-bold flex-shrink-0">
+       4
+      </div>
+      <div class="flex-1">
+       <h3 class="font-bold text-gray-900 flex items-center gap-2"><i data-lucide="memory-stick" style="width:18px;height:18px;color:#667eea;"></i> Dynamic Memory</h3>
+       <p class="text-sm text-gray-600 mt-2">Memory allocated per node, freed on deletion automatically</p>
+      </div>
+     </div>
+    </div>
+   </div><!-- Interactive Flow Diagram -->
+   <div class="px-6 py-8 bg-white/50">
+    <div class="mb-6">
+     <h2 class="text-2xl font-bold text-gray-900">Operation Flow</h2>
+     <p class="text-sm text-gray-600 mt-1">See how operations transform the list</p>
+    </div>
+    <div class="card-glass rounded-2xl p-8">
+     <div class="flex flex-col items-center gap-4"><!-- Start -->
+      <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-6 py-3 font-bold text-sm fade-in">
+       User Action
+      </div><!-- Arrows & Operations Grid -->
+      <svg width="3" height="20" viewbox="0 0 3 20"><line x1="1.5" y1="0" x2="1.5" y2="20" stroke="#667eea" stroke-width="2" />
+      </svg>
+      <div class="grid grid-cols-3 gap-4 w-full">
+       <div class="card-glass rounded-xl p-4 text-center fade-in delay-1">
+        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2"><i data-lucide="plus-circle" style="width:20px;height:20px;color:#16a34a;"></i>
+        </div>
+        <p class="font-semibold text-xs text-gray-800">Add Item</p>
+        <p class="mono text-[9px] text-green-600 mt-1">Insert node</p>
+       </div>
+       <div class="card-glass rounded-xl p-4 text-center fade-in delay-2">
+        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-2"><i data-lucide="trash" style="width:20px;height:20px;color:#dc2626;"></i>
+        </div>
+        <p class="font-semibold text-xs text-gray-800">Remove Item</p>
+        <p class="mono text-[9px] text-red-600 mt-1">Delete node</p>
+       </div>
+       <div class="card-glass rounded-xl p-4 text-center fade-in delay-3">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2"><i data-lucide="eye" style="width:20px;height:20px;color:#2563eb;"></i>
+        </div>
+        <p class="font-semibold text-xs text-gray-800">Display All</p>
+        <p class="mono text-[9px] text-blue-600 mt-1">Traverse list</p>
+       </div>
+      </div>
+      <svg width="3" height="20" viewbox="0 0 3 20"><line x1="1.5" y1="0" x2="1.5" y2="20" stroke="#667eea" stroke-width="2" />
+      </svg>
+      <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-6 py-3 font-bold text-sm fade-in">
+       Update Pointers
+      </div>
+      <svg width="3" height="20" viewbox="0 0 3 20"><line x1="1.5" y1="0" x2="1.5" y2="20" stroke="#667eea" stroke-width="2" />
+      </svg>
+      <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-6 py-3 font-bold text-sm fade-in">
+       Complete ✓
+      </div>
+     </div>
+    </div>
+   </div><!-- Tech Stack Tags -->
+   <div class="px-6 py-8">
+    <div class="mb-6">
+     <h2 class="text-2xl font-bold text-gray-900">Built With</h2>
+     <p class="text-sm text-gray-600 mt-1">Data structures powering performance</p>
+    </div>
+    <div class="flex flex-wrap gap-3">
+     <div class="badge-tag fade-in delay-1"><i data-lucide="link" style="width:14px;height:14px;display:inline;margin-right:6px;vertical-align:text-bottom;"></i> Linked List
+     </div>
+     <div class="badge-tag fade-in delay-2"><i data-lucide="database" style="width:14px;height:14px;display:inline;margin-right:6px;vertical-align:text-bottom;"></i> Nodes &amp; Pointers
+     </div>
+     <div class="badge-tag fade-in delay-3"><i data-lucide="cpu" style="width:14px;height:14px;display:inline;margin-right:6px;vertical-align:text-bottom;"></i> Dynamic Memory
+     </div>
+     <div class="badge-tag fade-in delay-3"><i data-lucide="zap" style="width:14px;height:14px;display:inline;margin-right:6px;vertical-align:text-bottom;"></i> O(1) Insertion
+     </div>
+    </div>
+   </div><!-- Footer -->
+   <div class="px-6 py-6 text-center border-t border-white/20">
+    <p class="text-sm text-gray-600">Smart Shopping Cart — A Linked List Study Project</p>
+   </div>
+  </div>
+  <script>
+    // Sample products
+    const products = [
+      { id: 101, name: 'Headphones', price: 49 },
+      { id: 102, name: 'Notebook', price: 12 },
+      { id: 103, name: 'Mouse', price: 25 },
+      { id: 104, name: 'Keyboard', price: 75 },
+      { id: 105, name: 'Monitor', price: 299 }
+    ];
+
+    let cart = [];
+    let cartCount = 0;
+
+    const elements = {
+      cartBadge: document.getElementById('cart-badge'),
+      cartItems: document.getElementById('cart-items'),
+      totalLabel: document.getElementById('total-label'),
+      addBtn: document.getElementById('add-btn'),
+      removeBtn: document.getElementById('remove-btn'),
+      viewCartBtn: document.getElementById('view-cart-btn'),
+      clearBtn: document.getElementById('clear-btn'),
+      appTitle: document.getElementById('app-title'),
+      tagline: document.getElementById('tagline')
+    };
+
+    function updateUI() {
+      elements.cartBadge.textContent = cartCount;
+      elements.totalLabel.textContent = cartCount + ' item' + (cartCount !== 1 ? 's' : '');
+      renderCart();
+    }
+
+    function renderCart() {
+      if (cart.length === 0) {
+        elements.cartItems.innerHTML = '<div class="text-center py-8 text-gray-400"><i data-lucide="inbox" style="width:40px;height:40px;margin:0 auto 8px;opacity:0.5;"></i><p class="text-sm">Your cart is empty. Add items to get started!</p></div>';
+        lucide.createIcons();
+        return;
+      }
+
+      elements.cartItems.innerHTML = cart.map(item => `
+        <div class="card-glass rounded-xl p-4 flex items-start justify-between gap-4 slide-in-right">
+          <div class="flex-1 min-w-0">
+            <div class="mono text-[10px] text-purple-600 font-bold mb-1">ID: ${item.id}</div>
+            <h3 class="font-semibold text-gray-900 text-sm">${item.name}</h3>
+            <p class="text-xs text-gray-600 mt-1">$${item.price}</p>
+          </div>
+          <button onclick="removeItemFromCart(${item.id})" class="p-2 hover:bg-red-50 rounded-lg transition flex-shrink-0">
+            <i data-lucide="trash-2" style="width:16px;height:16px;color:#dc2626;"></i>
+          </button>
+        </div>
+      `).join('');
+      
+      lucide.createIcons();
+    }
+
+    function addItemToCart() {
+      const randomProduct = products[Math.floor(Math.random() * products.length)];
+      const existingItem = cart.find(item => item.id === randomProduct.id);
+      
+      if (!existingItem) {
+        cart.push({ ...randomProduct });
+        cartCount++;
+        updateUI();
+      }
+    }
+
+    function removeItemFromCart(id) {
+      const index = cart.findIndex(item => item.id === id);
+      if (index > -1) {
+        cart.splice(index, 1);
+        cartCount--;
+        updateUI();
+      }
+    }
+
+    function clearCart() {
+      cart = [];
+      cartCount = 0;
+      updateUI();
+    }
+
+    // Event listeners
+    elements.addBtn.addEventListener('click', addItemToCart);
+    elements.removeBtn.addEventListener('click', () => {
+      if (cart.length > 0) {
+        const randomIndex = Math.floor(Math.random() * cart.length);
+        removeItemFromCart(cart[randomIndex].id);
+      }
+    });
+    elements.viewCartBtn.addEventListener('click', () => {
+      document.getElementById('cart-items').scrollIntoView({ behavior: 'smooth' });
+    });
+    elements.clearBtn.addEventListener('click', clearCart);
+
+    // Lucide icons
+    lucide.createIcons();
+
+    // Element SDK
+    const defaultConfig = {
+      app_title: 'Smart Shopping',
+      tagline: 'Instant checkout powered by linked lists',
+      total_label: 'Total Items'
+    };
+
+    function applyConfig(config) {
+      const c = { ...defaultConfig, ...config };
+      elements.appTitle.textContent = c.app_title;
+      elements.tagline.textContent = c.tagline;
+    }
+
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => { applyConfig(config); },
+      mapToCapabilities: (config) => ({
+        recolorables: [],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ['app_title', config.app_title || defaultConfig.app_title],
+        ['tagline', config.tagline || defaultConfig.tagline],
+        ['total_label', config.total_label || defaultConfig.total_label]
+      ])
+    });
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eac06ec24d47f41',t:'MTc3NTkzMTg1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
