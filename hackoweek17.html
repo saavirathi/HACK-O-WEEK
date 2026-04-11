@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bank ATM Queue System</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&amp;family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
+    
+    body {
+      background: linear-gradient(135deg, #0d1b1a 0%, #1a2c2b 50%, #0d1b1a 100%);
+      font-family: 'IBM Plex Sans', sans-serif;
+      overflow: hidden;
+    }
+    
+    .atm-screen {
+      background: linear-gradient(to bottom, #1a3a38, #0d2626);
+      border: 3px solid #00ff88;
+      border-radius: 12px;
+      box-shadow: 0 0 40px rgba(0, 255, 136, 0.3), inset 0 0 20px rgba(0, 255, 136, 0.05);
+      position: relative;
+    }
+    
+    .atm-screen::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, rgba(0, 255, 136, 0.02) 0px, rgba(0, 255, 136, 0.02) 2px, transparent 2px, transparent 4px);
+      border-radius: 12px;
+      pointer-events: none;
+      animation: scanlines 8s linear infinite;
+    }
+    
+    @keyframes scanlines { from { transform: translateY(0); } to { transform: translateY(4px); } }
+    
+    .neon-btn {
+      font-family: 'Courier Prime', monospace;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      border: 2px solid;
+    }
+    
+    .neon-btn-green {
+      border-color: #00ff88;
+      background: rgba(0, 255, 136, 0.1);
+      color: #00ff88;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    }
+    
+    .neon-btn-green:hover {
+      background: rgba(0, 255, 136, 0.2);
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+      transform: translateY(-2px);
+    }
+    
+    .neon-btn-blue {
+      border-color: #00d4ff;
+      background: rgba(0, 212, 255, 0.1);
+      color: #00d4ff;
+      box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+    }
+    
+    .neon-btn-blue:hover {
+      background: rgba(0, 212, 255, 0.2);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+      transform: translateY(-2px);
+    }
+    
+    .neon-btn-red {
+      border-color: #ff3366;
+      background: rgba(255, 51, 102, 0.1);
+      color: #ff3366;
+      box-shadow: 0 0 10px rgba(255, 51, 102, 0.3);
+    }
+    
+    .neon-btn-red:hover {
+      background: rgba(255, 51, 102, 0.2);
+      box-shadow: 0 0 20px rgba(255, 51, 102, 0.6);
+      transform: translateY(-2px);
+    }
+    
+    .queue-slot {
+      width: 50px;
+      height: 50px;
+      border: 2px solid rgba(0, 255, 136, 0.2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier Prime', monospace;
+      font-weight: 700;
+      font-size: 20px;
+      transition: all 0.4s ease;
+      position: absolute;
+    }
+    
+    .queue-slot.empty {
+      background: rgba(0, 255, 136, 0.02);
+      color: rgba(0, 255, 136, 0.1);
+    }
+    
+    .queue-slot.filled {
+      background: rgba(0, 255, 136, 0.15);
+      border-color: #00ff88;
+      color: #00ff88;
+    }
+    
+    .queue-slot.front {
+      background: rgba(0, 212, 255, 0.2);
+      border-color: #00d4ff;
+      color: #00d4ff;
+      animation: pulse-front 1s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-front {
+      0%, 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.3); transform: scale(1); }
+      50% { box-shadow: 0 0 25px rgba(0, 212, 255, 0.6); transform: scale(1.05); }
+    }
+    
+    .status-indicator {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    
+    .status-green { background: #00ff88; box-shadow: 0 0 10px #00ff88; }
+    .status-red { background: #ff3366; box-shadow: 0 0 10px #ff3366; }
+    
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    
+    .info-panel {
+      background: rgba(0, 255, 136, 0.05);
+      border: 1px solid rgba(0, 255, 136, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    
+    .text-neon-green { color: #00ff88; }
+    .text-neon-blue { color: #00d4ff; }
+    .text-neon-red { color: #ff3366; }
+    
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .toast {
+      font-family: 'Courier Prime', monospace;
+      font-weight: 700;
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 255, 136, 0.15);
+      border: 2px solid #00ff88;
+      color: #00ff88;
+      padding: 12px 24px;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 50;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+    }
+    
+    .toast.show { opacity: 1; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body>
+  <div id="app" class="w-full h-full flex items-center justify-center p-4"><!-- Main ATM Interface -->
+   <div class="atm-screen p-8 max-w-2xl w-full relative z-10"><!-- Header Display -->
+    <div class="text-center mb-8">
+     <h1 id="mainTitle" class="text-4xl font-bold mb-2" style="font-family: 'Courier Prime', monospace; color: #00ff88;">BANK ATM QUEUE SYSTEM</h1>
+     <p id="statusLabel" class="text-sm tracking-widest" style="color: rgba(255, 255, 255, 0.5); font-family: 'Courier Prime', monospace;">SECURE BANKING NETWORK</p>
+     <div class="flex items-center justify-center gap-3 mt-4"><span class="status-indicator" id="statusInd" style=""></span> <span id="statusText" style="color: rgba(255, 255, 255, 0.6); font-size: 12px; font-family: 'Courier Prime', monospace;">SYSTEM READY</span>
+     </div>
+    </div><!-- Circular Queue Visualization -->
+    <div class="flex flex-col items-center mb-8">
+     <div class="relative mb-6" style="width: 280px; height: 280px;">
+      <svg viewbox="0 0 280 280" class="absolute inset-0 w-full h-full"><circle cx="140" cy="140" r="120" fill="none" stroke="rgba(0, 255, 136, 0.1)" stroke-width="2" stroke-dasharray="5,5" /> <circle cx="140" cy="140" r="130" fill="none" stroke="rgba(0, 255, 136, 0.05)" stroke-width="1" />
+      </svg>
+      <div id="queueCircle" class="absolute inset-0" style="position: relative;"></div>
+      <div class="absolute inset-0 flex flex-col items-center justify-center text-center z-20">
+       <div class="text-5xl font-bold mb-2 text-neon-green" id="queueCount" style="font-family: 'Courier Prime', monospace;">
+        0
+       </div>
+       <div class="text-xs tracking-widest text-neon-green" style="font-family: 'Courier Prime', monospace;">
+        CUSTOMERS WAITING
+       </div>
+      </div>
+     </div><!-- Front & Rear Labels -->
+     <div class="flex justify-between w-full px-8 text-xs font-bold mb-4" style="font-family: 'Courier Prime', monospace;">
+      <div class="text-center">
+       <div class="text-neon-blue">
+        FRONT
+       </div>
+       <div id="frontPos" style="color: rgba(255, 255, 255, 0.4);">
+        —
+       </div>
+      </div>
+      <div class="text-center">
+       <div class="text-neon-red">
+        CAPACITY
+       </div>
+       <div id="capacityDisplay" style="color: rgba(255, 255, 255, 0.4);">
+        8/8
+       </div>
+      </div>
+      <div class="text-center">
+       <div class="text-neon-green">
+        REAR
+       </div>
+       <div id="rearPos" style="color: rgba(255, 255, 255, 0.4);">
+        —
+       </div>
+      </div>
+     </div>
+    </div><!-- Control Panel -->
+    <div class="grid grid-cols-3 gap-4 mb-6"><button id="joinBtn" class="neon-btn neon-btn-green py-3 px-4 rounded-lg text-sm h-20 flex flex-col items-center justify-center"> <i data-lucide="user-plus" style="width: 20px; height: 20px; margin-bottom: 4px;"></i> <span>Join Queue</span> </button> <button id="processBtn" class="neon-btn neon-btn-blue py-3 px-4 rounded-lg text-sm h-20 flex flex-col items-center justify-center"> <i data-lucide="arrow-right" style="width: 20px; height: 20px; margin-bottom: 4px;"></i> <span>Process Customer</span> </button> <button id="peakBtn" class="neon-btn neon-btn-red py-3 px-4 rounded-lg text-sm h-20 flex flex-col items-center justify-center"> <i data-lucide="zap" style="width: 20px; height: 20px; margin-bottom: 4px;"></i> <span>Peak Hour</span> </button>
+    </div><!-- Status Panel -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+     <div class="info-panel">
+      <div class="text-xs tracking-widest mb-2" style="font-family: 'Courier Prime', monospace; color: rgba(255, 255, 255, 0.4);">
+       NOW SERVING
+      </div>
+      <div id="nowServing" class="text-neon-blue font-bold" style="font-family: 'Courier Prime', monospace; min-height: 28px;">
+       — No Customer —
+      </div>
+     </div>
+     <div class="info-panel">
+      <div class="text-xs tracking-widest mb-2" style="font-family: 'Courier Prime', monospace; color: rgba(255, 255, 255, 0.4);">
+       QUEUE STATE
+      </div>
+      <div id="queueState" class="text-neon-green font-bold" style="font-family: 'Courier Prime', monospace; min-height: 28px;">
+       EMPTY
+      </div>
+     </div>
+    </div><!-- Action Buttons Row -->
+    <div class="grid grid-cols-2 gap-4"><button id="checkStatusBtn" class="neon-btn neon-btn-blue py-2 px-4 rounded-lg text-xs">CHECK STATUS</button> <button id="resetBtn" class="neon-btn neon-btn-red py-2 px-4 rounded-lg text-xs">RESET SYSTEM</button>
+    </div>
+   </div><!-- Toast Notification -->
+   <div id="toast" class="toast"></div>
+  </div>
+  <script>
+    // Queue implementation
+    const CAPACITY = 8;
+    let queue = new Array(CAPACITY).fill(null);
+    let front = -1, rear = -1, count = 0, totalProcessed = 0;
+    let peakTimer = null;
+
+    function isFull() { return count === CAPACITY; }
+    function isEmpty() { return count === 0; }
+
+    function enqueue(customer) {
+      if (isFull()) return false;
+      if (isEmpty()) { front = 0; rear = 0; }
+      else { rear = (rear + 1) % CAPACITY; }
+      queue[rear] = customer;
+      count++;
+      return true;
+    }
+
+    function dequeue() {
+      if (isEmpty()) return null;
+      const customer = queue[front];
+      queue[front] = null;
+      count--;
+      if (count === 0) { front = -1; rear = -1; }
+      else { front = (front + 1) % CAPACITY; }
+      totalProcessed++;
+      return customer;
+    }
+
+    // Render circular queue visualization
+    function renderQueueCircle() {
+      const container = document.getElementById('queueCircle');
+      container.innerHTML = '';
+      const radius = 120;
+      const cx = 140, cy = 140;
+
+      for (let i = 0; i < CAPACITY; i++) {
+        const angle = (i / CAPACITY) * 2 * Math.PI - Math.PI / 2;
+        const x = cx + radius * Math.cos(angle);
+        const y = cy + radius * Math.sin(angle);
+
+        const slot = document.createElement('div');
+        slot.className = 'queue-slot';
+        slot.id = `slot-${i}`;
+        slot.style.left = (x - 25) + 'px';
+        slot.style.top = (y - 25) + 'px';
+
+        const item = queue[i];
+        if (item) {
+          slot.classList.add(i === front ? 'front' : 'filled');
+          slot.textContent = item.name.charAt(0).toUpperCase();
+          slot.title = `${item.name} - ${item.type}`;
+        } else {
+          slot.classList.add('empty');
+          slot.textContent = i;
+          slot.title = `Slot ${i}`;
+        }
+
+        container.appendChild(slot);
+      }
+    }
+
+    function updateUI() {
+      renderQueueCircle();
+
+      // Update counts
+      document.getElementById('queueCount').textContent = count;
+      document.getElementById('capacityDisplay').textContent = `${count}/${CAPACITY}`;
+      document.getElementById('frontPos').textContent = front >= 0 ? front : '—';
+      document.getElementById('rearPos').textContent = rear >= 0 ? rear : '—';
+
+      // Update status
+      if (isFull()) {
+        document.getElementById('queueState').textContent = '⚠ FULL';
+        document.getElementById('queueState').style.color = '#ff3366';
+        document.getElementById('statusInd').className = 'status-indicator status-red';
+      } else if (isEmpty()) {
+        document.getElementById('queueState').textContent = 'EMPTY';
+        document.getElementById('queueState').style.color = '#00ff88';
+        document.getElementById('statusInd').className = 'status-indicator status-green';
+      } else {
+        document.getElementById('queueState').textContent = 'ACTIVE';
+        document.getElementById('queueState').style.color = '#00d4ff';
+        document.getElementById('statusInd').className = 'status-indicator status-green';
+      }
+
+      // Now serving
+      if (!isEmpty()) {
+        document.getElementById('nowServing').textContent = `${queue[front].name} - ${queue[front].type}`;
+      } else {
+        document.getElementById('nowServing').textContent = '— No Customer —';
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // Events
+    document.getElementById('joinBtn').addEventListener('click', () => {
+      const names = ['Ahmed', 'Sarah', 'Marcus', 'Priya', 'James', 'Lisa', 'Chen', 'Amara'];
+      const types = ['Withdrawal', 'Deposit', 'Transfer', 'Balance Check'];
+      
+      if (isFull()) {
+        showToast('⚠ QUEUE FULL - Please wait');
+        return;
+      }
+      
+      const name = names[Math.floor(Math.random() * names.length)];
+      const type = types[Math.floor(Math.random() * types.length)];
+      
+      enqueue({ name, type });
+      updateUI();
+      showToast(`✓ ${name} joined queue`);
+    });
+
+    document.getElementById('processBtn').addEventListener('click', () => {
+      if (isEmpty()) {
+        showToast('Queue is empty');
+        return;
+      }
+      const customer = dequeue();
+      updateUI();
+      showToast(`✓ ${customer.name} processed`);
+    });
+
+    document.getElementById('peakBtn').addEventListener('click', () => {
+      clearInterval(peakTimer);
+      let i = 0;
+      const btn = document.getElementById('peakBtn');
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+      showToast('⚡ PEAK HOUR SIMULATION START');
+
+      peakTimer = setInterval(() => {
+        if (i < 8 && !isFull()) {
+          const names = ['Ahmed', 'Sarah', 'Marcus', 'Priya', 'James', 'Lisa', 'Chen', 'Amara'];
+          const types = ['Withdrawal', 'Deposit', 'Transfer', 'Balance Check'];
+          const name = names[i % names.length];
+          const type = types[Math.floor(Math.random() * types.length)];
+          enqueue({ name, type });
+          updateUI();
+          i++;
+        } else {
+          clearInterval(peakTimer);
+          btn.disabled = false;
+          btn.style.opacity = '1';
+          showToast('⚡ PEAK HOUR SIMULATION END');
+        }
+      }, 300);
+    });
+
+    document.getElementById('checkStatusBtn').addEventListener('click', () => {
+      const status = isEmpty() ? 'EMPTY' : isFull() ? 'FULL' : `${count} WAITING`;
+      showToast(`Status: ${status}`);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      clearInterval(peakTimer);
+      queue = new Array(CAPACITY).fill(null);
+      front = -1; rear = -1; count = 0;
+      updateUI();
+      showToast('✓ SYSTEM RESET');
+    });
+
+    // Element SDK
+    const defaultConfig = {
+      main_title: 'BANK ATM QUEUE SYSTEM',
+      status_label: 'SECURE BANKING NETWORK',
+      background_color: '#0d1b1a',
+      primary_accent: '#00ff88',
+      secondary_accent: '#00d4ff',
+      warning_color: '#ff3366',
+      text_color: '#ffffff',
+      font_family: 'Courier Prime',
+      font_size: 16
+    };
+
+    function applyConfig(config) {
+      const c = { ...defaultConfig, ...config };
+      document.getElementById('mainTitle').textContent = c.main_title;
+      document.getElementById('statusLabel').textContent = c.status_label;
+      
+      const font = c.font_family || defaultConfig.font_family;
+      const base = c.font_size || defaultConfig.font_size;
+      
+      document.getElementById('mainTitle').style.fontFamily = `${font}, monospace`;
+      document.getElementById('mainTitle').style.fontSize = `${base * 2}px`;
+      document.getElementById('statusLabel').style.fontFamily = `${font}, monospace`;
+      document.getElementById('statusLabel').style.fontSize = `${base * 0.7}px`;
+    }
+
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => applyConfig(config),
+      mapToCapabilities: (config) => ({
+        recolorables: [
+          { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+          { get: () => config.primary_accent || defaultConfig.primary_accent, set: (v) => { config.primary_accent = v; window.elementSdk.setConfig({ primary_accent: v }); } },
+          { get: () => config.secondary_accent || defaultConfig.secondary_accent, set: (v) => { config.secondary_accent = v; window.elementSdk.setConfig({ secondary_accent: v }); } },
+          { get: () => config.warning_color || defaultConfig.warning_color, set: (v) => { config.warning_color = v; window.elementSdk.setConfig({ warning_color: v }); } },
+          { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } }
+        ],
+        borderables: [],
+        fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
+        fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); } }
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ['main_title', config.main_title || defaultConfig.main_title],
+        ['status_label', config.status_label || defaultConfig.status_label]
+      ])
+    });
+
+    // Initialize
+    renderQueueCircle();
+    updateUI();
+    lucide.createIcons();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eac3bc5b3787f41',t:'MTc3NTkzNDAxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
