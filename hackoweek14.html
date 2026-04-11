@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Printer Queue System</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        panel: '#0a0f1a',
+        surface: '#111827',
+        tealAcc: '#00e5c7',
+        blueAcc: '#3b82f6',
+        amber: '#f59e0b'
+      }
+    }
+  }
+}
+</script>
+  <style>
+@keyframes slideIn { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-80px); opacity: 0; height: 0; margin: 0; padding: 0; } }
+@keyframes paperFeed { 0% { transform: translateY(-100%); } 100% { transform: translateY(0); } }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+@keyframes flowArrow { 0% { transform: translateX(-4px); opacity: .3; } 50% { opacity: 1; } 100% { transform: translateX(4px); opacity: .3; } }
+@keyframes fadeUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.slide-in { animation: slideIn .4s ease-out forwards; }
+.slide-out { animation: slideOut .4s ease-in forwards; }
+.paper-feed { animation: paperFeed .6s ease-out; }
+.pulse-dot { animation: pulse-dot 1.4s infinite; }
+.flow-arrow { animation: flowArrow 1s infinite; }
+.fade-up { animation: fadeUp .6s ease-out both; }
+.queue-card { transition: all .3s ease; }
+.queue-card:first-child { border-color: #00e5c7 !important; box-shadow: 0 0 20px rgba(0,229,199,.2); }
+::-webkit-scrollbar { height: 6px; }
+::-webkit-scrollbar-track { background: #111827; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+html, body { font-family: 'Space Grotesk', sans-serif; }
+code, .mono { font-family: 'JetBrains Mono', monospace; }
+</style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-panel text-gray-200">
+  <div id="app-wrapper" class="w-full h-full overflow-auto"><!-- HERO / DASHBOARD -->
+   <header class="w-full border-b border-gray-800 bg-surface/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+     <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-tealAcc/10 flex items-center justify-center"><i data-lucide="printer" class="w-5 h-5 text-tealAcc"></i>
+      </div>
+      <h1 id="main-title" class="text-lg font-bold tracking-tight text-white">Printer Queue System</h1>
+     </div>
+     <div class="flex items-center gap-2 text-xs mono"><span id="status-label" class="text-gray-500 mr-1">System Status</span> <span id="status-dot" class="w-2 h-2 rounded-full bg-tealAcc pulse-dot inline-block"></span> <span id="status-text" class="text-tealAcc font-semibold">READY</span>
+     </div>
+    </div>
+   </header>
+   <main class="max-w-6xl mx-auto px-4 py-8 space-y-12"><!-- PRINTER PANEL -->
+    <section class="fade-up grid md:grid-cols-[1fr_280px] gap-6"><!-- Controls -->
+     <div class="space-y-5">
+      <div class="bg-surface rounded-2xl border border-gray-800 p-6 space-y-4">
+       <div class="flex items-center gap-2 text-xs text-gray-500 mono uppercase tracking-wider"><i data-lucide="sliders" class="w-3.5 h-3.5"></i> Control Panel
+       </div>
+       <div class="flex flex-wrap gap-3"><button onclick="addJob()" class="flex items-center gap-2 bg-tealAcc/10 hover:bg-tealAcc/20 text-tealAcc border border-tealAcc/30 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all active:scale-95"> <i data-lucide="plus" class="w-4 h-4"></i> Add Print Job </button> <button onclick="processJob()" class="flex items-center gap-2 bg-blueAcc/10 hover:bg-blueAcc/20 text-blueAcc border border-blueAcc/30 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all active:scale-95"> <i data-lucide="play" class="w-4 h-4"></i> Process Job </button> <button onclick="clearQueue()" class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-400 border border-gray-700 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all active:scale-95"> <i data-lucide="trash-2" class="w-4 h-4"></i> Clear All </button>
+       </div><!-- Stats -->
+       <div class="grid grid-cols-3 gap-3 pt-2">
+        <div class="bg-panel rounded-xl p-3 text-center border border-gray-800">
+         <div id="stat-queue" class="text-2xl font-bold text-white mono">
+          0
+         </div>
+         <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-1">
+          In Queue
+         </div>
+        </div>
+        <div class="bg-panel rounded-xl p-3 text-center border border-gray-800">
+         <div id="stat-processed" class="text-2xl font-bold text-tealAcc mono">
+          0
+         </div>
+         <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-1">
+          Processed
+         </div>
+        </div>
+        <div class="bg-panel rounded-xl p-3 text-center border border-gray-800">
+         <div id="stat-total" class="text-2xl font-bold text-blueAcc mono">
+          0
+         </div>
+         <div class="text-[10px] text-gray-500 uppercase tracking-wider mt-1">
+          Total Jobs
+         </div>
+        </div>
+       </div>
+      </div>
+     </div><!-- Printer Visual -->
+     <div class="bg-surface rounded-2xl border border-gray-800 p-6 flex flex-col items-center justify-center relative overflow-hidden">
+      <div class="w-36 h-24 bg-gray-800 rounded-xl border border-gray-700 relative flex items-center justify-center"><i data-lucide="printer" class="w-10 h-10 text-gray-500"></i>
+       <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-20 h-1 bg-gray-700 rounded-full"></div>
+      </div><!-- Paper output area -->
+      <div id="paper-output" class="mt-2 w-28 h-16 overflow-hidden flex flex-col items-center"></div>
+      <div id="printer-msg" class="mt-3 text-xs text-gray-500 mono">
+       Idle
+      </div>
+     </div>
+    </section><!-- LIVE QUEUE -->
+    <section class="fade-up" style="animation-delay:.15s">
+     <div class="flex items-center gap-2 mb-4 text-xs text-gray-500 mono uppercase tracking-wider"><i data-lucide="layers" class="w-3.5 h-3.5"></i> Live Queue
+     </div>
+     <div class="bg-surface rounded-2xl border border-gray-800 p-5 min-h-[120px]"><!-- FIFO Labels -->
+      <div class="flex items-center justify-between mb-3 text-[10px] mono uppercase tracking-widest text-gray-600"><span class="text-tealAcc">◀ Front (Dequeue)</span> <span class="text-amber">Rear (Enqueue) ▶</span>
+      </div>
+      <div id="queue-container" class="flex gap-3 overflow-x-auto pb-2 items-stretch min-h-[80px]">
+       <div id="empty-msg" class="flex items-center justify-center w-full text-gray-600 text-sm">
+        Queue is empty — add a print job to begin
+       </div>
+      </div>
+     </div>
+    </section><!-- QUEUE VISUALIZATION -->
+    <section class="fade-up" style="animation-delay:.3s">
+     <div class="flex items-center gap-2 mb-4 text-xs text-gray-500 mono uppercase tracking-wider"><i data-lucide="git-branch" class="w-3.5 h-3.5"></i> Queue Flow — FIFO Pipeline
+     </div>
+     <div class="bg-surface rounded-2xl border border-gray-800 p-6">
+      <div class="flex items-center justify-center gap-2 flex-wrap">
+       <div class="flex items-center gap-1 bg-tealAcc/10 border border-tealAcc/30 rounded-lg px-3 py-2 text-tealAcc text-xs font-semibold mono">
+        FRONT
+       </div><i data-lucide="chevron-right" class="w-5 h-5 text-tealAcc/40 flow-arrow"></i>
+       <div class="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400 text-xs mono">
+        Job A
+       </div><i data-lucide="chevron-right" class="w-5 h-5 text-gray-600 flow-arrow" style="animation-delay:.2s"></i>
+       <div class="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400 text-xs mono">
+        Job B
+       </div><i data-lucide="chevron-right" class="w-5 h-5 text-gray-600 flow-arrow" style="animation-delay:.4s"></i>
+       <div class="flex items-center gap-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-400 text-xs mono">
+        Job C
+       </div><i data-lucide="chevron-right" class="w-5 h-5 text-amber/40 flow-arrow" style="animation-delay:.6s"></i>
+       <div class="flex items-center gap-1 bg-amber/10 border border-amber/30 rounded-lg px-3 py-2 text-amber text-xs font-semibold mono">
+        REAR
+       </div>
+      </div>
+      <p class="text-center text-gray-600 text-xs mt-4 mono">→ → → First In, First Out → → →</p>
+     </div>
+    </section><!-- HOW IT WORKS -->
+    <section class="fade-up" style="animation-delay:.45s">
+     <div class="flex items-center gap-2 mb-4 text-xs text-gray-500 mono uppercase tracking-wider"><i data-lucide="book-open" class="w-3.5 h-3.5"></i> How It Works
+     </div>
+     <div class="grid sm:grid-cols-3 gap-4">
+      <div class="bg-surface rounded-2xl border border-gray-800 p-5 text-center space-y-3">
+       <div class="w-12 h-12 mx-auto rounded-xl bg-tealAcc/10 flex items-center justify-center"><i data-lucide="plus-circle" class="w-6 h-6 text-tealAcc"></i>
+       </div>
+       <div class="text-sm font-semibold text-white">
+        Enqueue
+       </div>
+       <div class="text-xs text-gray-500">
+        New job joins at the <span class="text-amber font-semibold">rear</span> of the queue
+       </div>
+      </div>
+      <div class="bg-surface rounded-2xl border border-gray-800 p-5 text-center space-y-3">
+       <div class="w-12 h-12 mx-auto rounded-xl bg-blueAcc/10 flex items-center justify-center"><i data-lucide="log-out" class="w-6 h-6 text-blueAcc"></i>
+       </div>
+       <div class="text-sm font-semibold text-white">
+        Dequeue
+       </div>
+       <div class="text-xs text-gray-500">
+        First job removed from the <span class="text-tealAcc font-semibold">front</span>
+       </div>
+      </div>
+      <div class="bg-surface rounded-2xl border border-gray-800 p-5 text-center space-y-3">
+       <div class="w-12 h-12 mx-auto rounded-xl bg-purple-500/10 flex items-center justify-center"><i data-lucide="arrow-right-circle" class="w-6 h-6 text-purple-400"></i>
+       </div>
+       <div class="text-sm font-semibold text-white">
+        FIFO Order
+       </div>
+       <div class="text-xs text-gray-500">
+        First In → First Out. Order is always preserved
+       </div>
+      </div>
+     </div>
+    </section><!-- REAL-LIFE ANALOGY -->
+    <section class="fade-up" style="animation-delay:.6s">
+     <div class="flex items-center gap-2 mb-4 text-xs text-gray-500 mono uppercase tracking-wider"><i data-lucide="users" class="w-3.5 h-3.5"></i> Real-Life Analogy
+     </div>
+     <div class="bg-surface rounded-2xl border border-gray-800 p-6">
+      <div class="flex items-center gap-4 flex-wrap justify-center">
+       <div class="text-center space-y-1">
+        <div class="text-3xl">
+         🚪
+        </div>
+        <div class="text-[10px] text-tealAcc mono">
+         EXIT
+        </div>
+       </div><i data-lucide="chevron-left" class="w-5 h-5 text-tealAcc/40 flow-arrow"></i>
+       <div class="text-2xl">
+        🧑
+       </div>
+       <div class="text-2xl">
+        🧑‍🦱
+       </div>
+       <div class="text-2xl">
+        👩
+       </div>
+       <div class="text-2xl">
+        🧔
+       </div><i data-lucide="chevron-left" class="w-5 h-5 text-amber/40 flow-arrow" style="animation-delay:.3s"></i>
+       <div class="text-center space-y-1">
+        <div class="text-3xl">
+         🚶
+        </div>
+        <div class="text-[10px] text-amber mono">
+         JOIN
+        </div>
+       </div>
+      </div>
+      <p class="text-center text-gray-500 text-xs mt-4">Just like a waiting line — the person who arrived first gets served first.</p>
+     </div>
+    </section><!-- TECH TAGS -->
+    <section class="fade-up pb-8" style="animation-delay:.75s">
+     <div class="flex items-center gap-2 mb-4 text-xs text-gray-500 mono uppercase tracking-wider"><i data-lucide="cpu" class="w-3.5 h-3.5"></i> Tech Concepts
+     </div>
+     <div class="flex flex-wrap gap-2"><span class="bg-tealAcc/10 text-tealAcc border border-tealAcc/20 rounded-full px-4 py-1.5 text-xs font-semibold">Queue</span> <span class="bg-blueAcc/10 text-blueAcc border border-blueAcc/20 rounded-full px-4 py-1.5 text-xs font-semibold">FIFO Principle</span> <span class="bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full px-4 py-1.5 text-xs font-semibold">Data Structures</span> <span class="bg-amber/10 text-amber border border-amber/20 rounded-full px-4 py-1.5 text-xs font-semibold">Enqueue / Dequeue</span> <span class="bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-full px-4 py-1.5 text-xs font-semibold">Linear Structure</span>
+     </div>
+    </section>
+   </main>
+  </div>
+  <script>
+// --- Queue State ---
+let queue = [];
+let jobCounter = 0;
+let processedCount = 0;
+
+const docTypes = ['Report.pdf','Invoice.docx','Photo.png','Resume.pdf','Chart.xlsx','Letter.doc','Slides.pptx','Scan.jpg'];
+const pages = () => Math.floor(Math.random()*20)+1;
+
+function addJob() {
+  jobCounter++;
+  const job = {
+    id: jobCounter,
+    name: docTypes[Math.floor(Math.random()*docTypes.length)],
+    pages: pages(),
+    time: new Date().toLocaleTimeString()
+  };
+  queue.push(job);
+  renderQueue();
+  updateStats();
+  setStatus('READY');
+}
+
+function processJob() {
+  if (!queue.length) return;
+  setStatus('PRINTING');
+  const card = document.querySelector('.queue-card');
+  if (card) {
+    card.classList.add('slide-out');
+    // Paper animation
+    const paper = document.getElementById('paper-output');
+    const p = document.createElement('div');
+    p.className = 'w-20 h-10 bg-white rounded-sm shadow-lg flex items-center justify-center text-[8px] text-gray-800 mono paper-feed';
+    p.textContent = queue[0].name;
+    paper.innerHTML = '';
+    paper.appendChild(p);
+    document.getElementById('printer-msg').textContent = 'Printing ' + queue[0].name;
+
+    setTimeout(() => {
+      queue.shift();
+      processedCount++;
+      renderQueue();
+      updateStats();
+      setTimeout(() => {
+        setStatus(queue.length ? 'READY' : 'READY');
+        document.getElementById('printer-msg').textContent = queue.length ? 'Waiting' : 'Idle';
+      }, 300);
+    }, 400);
+  }
+}
+
+function clearQueue() {
+  queue = [];
+  renderQueue();
+  updateStats();
+  document.getElementById('paper-output').innerHTML = '';
+  document.getElementById('printer-msg').textContent = 'Idle';
+  setStatus('READY');
+}
+
+function renderQueue() {
+  const c = document.getElementById('queue-container');
+  const empty = document.getElementById('empty-msg');
+  if (!queue.length) {
+    c.innerHTML = '<div id="empty-msg" class="flex items-center justify-center w-full text-gray-600 text-sm">Queue is empty — add a print job to begin</div>';
+    return;
+  }
+  c.innerHTML = '';
+  queue.forEach((job, i) => {
+    const card = document.createElement('div');
+    card.className = 'queue-card flex-shrink-0 w-40 bg-panel border border-gray-700 rounded-xl p-3 slide-in space-y-2';
+    card.style.animationDelay = (i * .05) + 's';
+    card.innerHTML = `
+      <div class="flex items-center justify-between">
+        <span class="mono text-[10px] text-gray-500">#${job.id}</span>
+        ${i === 0 ? '<span class="text-[9px] bg-tealAcc/20 text-tealAcc px-1.5 py-0.5 rounded-full font-semibold">NEXT</span>' : ''}
+      </div>
+      <div class="text-sm font-semibold text-white truncate">${job.name}</div>
+      <div class="flex items-center justify-between text-[10px] text-gray-500 mono">
+        <span>${job.pages} pg</span>
+        <span>${job.time}</span>
+      </div>
+      <div class="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+        <div class="h-full rounded-full ${i === 0 ? 'bg-tealAcc' : 'bg-gray-600'}" style="width:${i === 0 ? 100 : Math.random()*40+10}%"></div>
+      </div>
+    `;
+    c.appendChild(card);
+  });
+}
+
+function updateStats() {
+  document.getElementById('stat-queue').textContent = queue.length;
+  document.getElementById('stat-processed').textContent = processedCount;
+  document.getElementById('stat-total').textContent = jobCounter;
+}
+
+function setStatus(s) {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  txt.textContent = s;
+  if (s === 'PRINTING') {
+    dot.className = 'w-2 h-2 rounded-full bg-amber pulse-dot inline-block';
+    txt.className = 'text-amber font-semibold';
+  } else {
+    dot.className = 'w-2 h-2 rounded-full bg-tealAcc pulse-dot inline-block';
+    txt.className = 'text-tealAcc font-semibold';
+  }
+}
+
+// --- Element SDK ---
+const defaultConfig = {
+  main_title: 'Printer Queue System',
+  status_label: 'System Status',
+  background_color: '#0a0f1a',
+  surface_color: '#111827',
+  text_color: '#e5e7eb',
+  primary_color: '#00e5c7',
+  accent_color: '#3b82f6',
+  font_family: 'Space Grotesk',
+  font_size: 16
+};
+
+function applyConfig(config) {
+  const bg = config.background_color || defaultConfig.background_color;
+  const sf = config.surface_color || defaultConfig.surface_color;
+  const tx = config.text_color || defaultConfig.text_color;
+  const pr = config.primary_color || defaultConfig.primary_color;
+  const ac = config.accent_color || defaultConfig.accent_color;
+  const ff = config.font_family || defaultConfig.font_family;
+  const fs = config.font_size || defaultConfig.font_size;
+
+  document.body.style.background = bg;
+  document.body.style.color = tx;
+  document.body.style.fontFamily = `${ff}, sans-serif`;
+  document.body.style.fontSize = fs + 'px';
+
+  document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title;
+  document.getElementById('status-label').textContent = config.status_label || defaultConfig.status_label;
+
+  document.querySelectorAll('.bg-surface, [class*="bg-surface"]').forEach(el => el.style.backgroundColor = sf);
+  document.querySelectorAll('.text-tealAcc, .text-tealAcc\\/40').forEach(el => el.style.color = pr);
+}
+
+if (window.elementSdk) {
+  window.elementSdk.init({
+    defaultConfig,
+    onConfigChange: async (config) => applyConfig(config),
+    mapToCapabilities: (config) => ({
+      recolorables: [
+        { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+        { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+        { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+        { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => { config.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); } },
+        { get: () => config.accent_color || defaultConfig.accent_color, set: (v) => { config.accent_color = v; window.elementSdk.setConfig({ accent_color: v }); } }
+      ],
+      borderables: [],
+      fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
+      fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); } }
+    }),
+    mapToEditPanelValues: (config) => new Map([
+      ['main_title', config.main_title || defaultConfig.main_title],
+      ['status_label', config.status_label || defaultConfig.status_label]
+    ])
+  });
+}
+
+lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eac1868033c4932',t:'MTc3NTkzMjU3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
