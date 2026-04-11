@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Book Search System</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        outfit: ['Outfit', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace']
+      }
+    }
+  }
+}
+</script>
+  <style>
+html, body { height: 100%; margin: 0; }
+body { font-family: 'Outfit', sans-serif; }
+
+.glass {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.glass-bright {
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.contact-card {
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.contact-card:hover {
+  transform: translateY(-4px);
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(139,92,246,0.4);
+  box-shadow: 0 8px 32px rgba(139,92,246,0.15);
+}
+.search-glow {
+  box-shadow: 0 0 0 1px rgba(139,92,246,0.3), 0 4px 24px rgba(139,92,246,0.1);
+  transition: box-shadow 0.3s;
+}
+.search-glow:focus-within {
+  box-shadow: 0 0 0 2px rgba(139,92,246,0.6), 0 8px 40px rgba(139,92,246,0.2);
+}
+.arr-cell {
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.arr-cell.highlight-mid {
+  background: rgba(139,92,246,0.6);
+  border-color: #8b5cf6;
+  transform: scale(1.12);
+}
+.arr-cell.highlight-found {
+  background: rgba(34,197,94,0.5);
+  border-color: #22c55e;
+  transform: scale(1.15);
+  box-shadow: 0 0 20px rgba(34,197,94,0.4);
+}
+.arr-cell.dimmed {
+  opacity: 0.25;
+  transform: scale(0.92);
+}
+.arr-cell.active-range {
+  opacity: 1;
+  border-color: rgba(139,92,246,0.4);
+}
+.fade-in {
+  animation: fadeUp 0.6s ease both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(20px); }
+  to { opacity:1; transform: translateY(0); }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(139,92,246,0.4); }
+  70% { box-shadow: 0 0 0 12px rgba(139,92,246,0); }
+  100% { box-shadow: 0 0 0 0 rgba(139,92,246,0); }
+}
+.pulse-ring { animation: pulse-ring 2s infinite; }
+.step-line {
+  background: linear-gradient(180deg, rgba(139,92,246,0.6), rgba(139,92,246,0));
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+.matched-text { color: #a78bfa; font-weight: 600; }
+</style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-gray-950 text-white overflow-auto">
+  <div id="app" class="w-full min-h-full" style="background: radial-gradient(ellipse at 20% 0%, rgba(88,28,135,0.25) 0%, transparent 60%), radial-gradient(ellipse at 80% 100%, rgba(30,58,138,0.2) 0%, transparent 60%), #030712;"><!-- NAV -->
+   <nav class="w-full sticky top-0 z-50 glass border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+     <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center"><i data-lucide="book-open" class="w-5 h-5"></i>
+      </div><span class="font-semibold text-sm tracking-wide">CBSS</span>
+     </div>
+     <div class="flex items-center gap-4"><button id="themeToggle" class="glass rounded-full p-2 hover:bg-white/10 transition" aria-label="Toggle theme"> <i data-lucide="sun" class="w-4 h-4" id="themeIcon"></i> </button>
+     </div>
+    </div>
+   </nav><!-- HERO -->
+   <header class="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center fade-in">
+    <div class="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs text-violet-300 mb-8 font-medium tracking-wide"><i data-lucide="zap" class="w-3.5 h-3.5"></i> Binary Search Powered
+    </div>
+    <h1 id="heroTitle" class="text-5xl md:text-6xl font-800 leading-tight mb-5" style="background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #818cf8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Contact Book Search System</h1>
+    <p id="heroSubtitle" class="text-lg text-gray-400 max-w-xl mx-auto mb-12 font-light">Fast contact lookup using efficient algorithms</p>
+    <div class="max-w-xl mx-auto search-glow rounded-2xl glass-bright flex items-center gap-3 px-5 py-4"><i data-lucide="search" class="w-5 h-5 text-violet-400 flex-shrink-0"></i> <input id="heroSearch" type="text" placeholder="Search contacts instantly..." class="bg-transparent outline-none w-full text-white placeholder-gray-500 text-base" aria-label="Search contacts"> <kbd class="hidden sm:inline text-xs text-gray-500 border border-gray-700 rounded px-2 py-0.5 font-mono">⌘K</kbd>
+    </div>
+    <div id="heroSearchResults" class="max-w-xl mx-auto mt-3 text-left"></div>
+   </header><!-- CONTACT LIST -->
+   <section class="max-w-6xl mx-auto px-6 pb-20" style="animation: fadeUp 0.6s 0.15s ease both;">
+    <div class="flex items-center justify-between mb-8">
+     <div>
+      <h2 class="text-2xl font-bold">Contacts</h2>
+      <p class="text-gray-500 text-sm mt-1" id="contactCount"></p>
+     </div>
+     <div class="flex gap-2"><button id="viewGrid" class="glass rounded-lg p-2 hover:bg-white/10 transition" aria-label="Grid view"><i data-lucide="grid-3x3" class="w-4 h-4"></i></button> <button id="viewList" class="glass rounded-lg p-2 hover:bg-white/10 transition" aria-label="List view"><i data-lucide="list" class="w-4 h-4"></i></button>
+     </div>
+    </div>
+    <div id="contactGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+   </section><!-- BINARY SEARCH VISUALIZATION -->
+   <section class="max-w-5xl mx-auto px-6 pb-24" style="animation: fadeUp 0.6s 0.3s ease both;">
+    <div class="text-center mb-12">
+     <h2 class="text-2xl font-bold mb-2">Binary Search Visualization</h2>
+     <p class="text-gray-500 text-sm">Watch the algorithm find contacts in real-time</p>
+    </div>
+    <div class="glass-bright rounded-3xl p-8">
+     <div class="flex items-center gap-3 mb-6"><input id="vizSearch" type="text" placeholder="Type a name to visualize search..." class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none w-full text-white placeholder-gray-500 focus:border-violet-500/50 transition" aria-label="Visualize binary search"> <button id="vizBtn" class="bg-violet-600 hover:bg-violet-500 transition rounded-xl px-6 py-3 font-medium text-sm whitespace-nowrap flex items-center gap-2"> <i data-lucide="play" class="w-4 h-4"></i> Run </button>
+     </div>
+     <div id="vizArray" class="flex gap-2 overflow-x-auto pb-4 mb-4"></div>
+     <div id="vizLog" class="font-mono text-xs text-gray-400 space-y-1 max-h-40 overflow-y-auto"></div>
+    </div>
+   </section><!-- HOW IT WORKS -->
+   <section class="max-w-4xl mx-auto px-6 pb-24" style="animation: fadeUp 0.6s 0.45s ease both;">
+    <h2 class="text-2xl font-bold text-center mb-12">How It Works</h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+     <div class="glass rounded-2xl p-6 text-center group hover:bg-white/[0.06] transition">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 border border-blue-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition"><i data-lucide="database" class="w-6 h-6 text-blue-400"></i>
+      </div>
+      <div class="text-xs text-blue-400 font-mono mb-2">
+       01
+      </div>
+      <h3 class="font-semibold text-sm mb-1">Store</h3>
+      <p class="text-xs text-gray-500">Contacts saved in array</p>
+     </div>
+     <div class="glass rounded-2xl p-6 text-center group hover:bg-white/[0.06] transition">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-500/5 border border-violet-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition"><i data-lucide="arrow-up-down" class="w-6 h-6 text-violet-400"></i>
+      </div>
+      <div class="text-xs text-violet-400 font-mono mb-2">
+       02
+      </div>
+      <h3 class="font-semibold text-sm mb-1">Sort A–Z</h3>
+      <p class="text-xs text-gray-500">Alphabetical ordering</p>
+     </div>
+     <div class="glass rounded-2xl p-6 text-center group hover:bg-white/[0.06] transition">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 border border-purple-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition"><i data-lucide="split" class="w-6 h-6 text-purple-400"></i>
+      </div>
+      <div class="text-xs text-purple-400 font-mono mb-2">
+       03
+      </div>
+      <h3 class="font-semibold text-sm mb-1">Binary Search</h3>
+      <p class="text-xs text-gray-500">Split &amp; compare O(log n)</p>
+     </div>
+     <div class="glass rounded-2xl p-6 text-center group hover:bg-white/[0.06] transition">
+      <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-green-500/20 to-green-500/5 border border-green-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition"><i data-lucide="check-circle" class="w-6 h-6 text-green-400"></i>
+      </div>
+      <div class="text-xs text-green-400 font-mono mb-2">
+       04
+      </div>
+      <h3 class="font-semibold text-sm mb-1">Found</h3>
+      <p class="text-xs text-gray-500">Instant result returned</p>
+     </div>
+    </div>
+   </section><!-- TECH STACK -->
+   <section class="max-w-4xl mx-auto px-6 pb-24" style="animation: fadeUp 0.6s 0.55s ease both;">
+    <h2 class="text-2xl font-bold text-center mb-12">Tech Stack</h2>
+    <div class="flex flex-wrap justify-center gap-4">
+     <div class="glass rounded-2xl px-6 py-4 flex items-center gap-3 hover:bg-white/[0.06] transition">
+      <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center"><i data-lucide="brackets" class="w-5 h-5 text-blue-400"></i>
+      </div>
+      <div>
+       <div class="font-semibold text-sm">
+        Arrays
+       </div>
+       <div class="text-xs text-gray-500">
+        Data structure
+       </div>
+      </div>
+     </div>
+     <div class="glass rounded-2xl px-6 py-4 flex items-center gap-3 hover:bg-white/[0.06] transition">
+      <div class="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center"><i data-lucide="arrow-up-down" class="w-5 h-5 text-violet-400"></i>
+      </div>
+      <div>
+       <div class="font-semibold text-sm">
+        Sorting
+       </div>
+       <div class="text-xs text-gray-500">
+        Alphabetical order
+       </div>
+      </div>
+     </div>
+     <div class="glass rounded-2xl px-6 py-4 flex items-center gap-3 hover:bg-white/[0.06] transition">
+      <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center"><i data-lucide="search" class="w-5 h-5 text-purple-400"></i>
+      </div>
+      <div>
+       <div class="font-semibold text-sm">
+        Binary Search
+       </div>
+       <div class="text-xs text-gray-500">
+        O(log n) lookup
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- FOOTER -->
+   <footer class="border-t border-white/5 py-8 text-center text-xs text-gray-600">
+    Contact Book Search System — Built with efficient algorithms
+   </footer>
+  </div>
+  <script>
+const CONTACTS = [
+  { name: "Alice Chen", phone: "(415) 555-0101" },
+  { name: "Bob Martinez", phone: "(312) 555-0202" },
+  { name: "Clara Johnson", phone: "(212) 555-0303" },
+  { name: "David Kim", phone: "(617) 555-0404" },
+  { name: "Emma Wilson", phone: "(503) 555-0505" },
+  { name: "Frank Lee", phone: "(214) 555-0606" },
+  { name: "Grace Patel", phone: "(305) 555-0707" },
+  { name: "Henry Zhao", phone: "(408) 555-0808" },
+  { name: "Iris Nakamura", phone: "(720) 555-0909" },
+  { name: "Jack O'Brien", phone: "(206) 555-1010" },
+  { name: "Kara Singh", phone: "(646) 555-1111" },
+  { name: "Leo Fernandez", phone: "(813) 555-1212" }
+].sort((a, b) => a.name.localeCompare(b.name));
+
+let isGridView = true;
+let isDark = true;
+
+const defaultConfig = {
+  hero_title: "Contact Book Search System",
+  hero_subtitle: "Fast contact lookup using efficient algorithms",
+  background_color: "#030712",
+  surface_color: "#1a1a2e",
+  text_color: "#ffffff",
+  primary_action_color: "#7c3aed",
+  secondary_action_color: "#818cf8"
+};
+
+function applyConfig(config) {
+  const title = document.getElementById('heroTitle');
+  const subtitle = document.getElementById('heroSubtitle');
+  if (title) title.textContent = config.hero_title || defaultConfig.hero_title;
+  if (subtitle) subtitle.textContent = config.hero_subtitle || defaultConfig.hero_subtitle;
+
+  const bg = config.background_color || defaultConfig.background_color;
+  const text = config.text_color || defaultConfig.text_color;
+  const primary = config.primary_action_color || defaultConfig.primary_action_color;
+
+  document.body.style.color = text;
+  const app = document.getElementById('app');
+  if (app) app.style.background = `radial-gradient(ellipse at 20% 0%, ${primary}40 0%, transparent 60%), radial-gradient(ellipse at 80% 100%, rgba(30,58,138,0.2) 0%, transparent 60%), ${bg}`;
+
+  const vizBtn = document.getElementById('vizBtn');
+  if (vizBtn) vizBtn.style.background = primary;
+
+  const font = config.font_family || defaultConfig.font_family;
+  if (font) {
+    document.body.style.fontFamily = `${font}, Outfit, sans-serif`;
+  }
+  const baseSize = config.font_size || 16;
+  if (title) title.style.fontSize = `${baseSize * 3}px`;
+  if (subtitle) subtitle.style.fontSize = `${baseSize * 1.1}px`;
+}
+
+window.elementSdk.init({
+  defaultConfig,
+  onConfigChange: async (config) => applyConfig(config),
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      { get: () => config.background_color || defaultConfig.background_color, set: v => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+      { get: () => config.surface_color || defaultConfig.surface_color, set: v => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+      { get: () => config.text_color || defaultConfig.text_color, set: v => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+      { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: v => { config.primary_action_color = v; window.elementSdk.setConfig({ primary_action_color: v }); } },
+      { get: () => config.secondary_action_color || defaultConfig.secondary_action_color, set: v => { config.secondary_action_color = v; window.elementSdk.setConfig({ secondary_action_color: v }); } }
+    ],
+    borderables: [],
+    fontEditable: {
+      get: () => config.font_family || defaultConfig.font_family || 'Outfit',
+      set: v => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+    },
+    fontSizeable: {
+      get: () => config.font_size || 16,
+      set: v => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
+    }
+  }),
+  mapToEditPanelValues: (config) => new Map([
+    ["hero_title", config.hero_title || defaultConfig.hero_title],
+    ["hero_subtitle", config.hero_subtitle || defaultConfig.hero_subtitle]
+  ])
+});
+
+// Render contacts
+function renderContacts(filter = "") {
+  const grid = document.getElementById('contactGrid');
+  const countEl = document.getElementById('contactCount');
+  const lowerFilter = filter.toLowerCase();
+  const filtered = filter ? CONTACTS.filter(c => c.name.toLowerCase().includes(lowerFilter)) : CONTACTS;
+  countEl.textContent = `${filtered.length} contact${filtered.length !== 1 ? 's' : ''} found`;
+
+  grid.innerHTML = '';
+  const colsClass = isGridView ? '' : 'lg:grid-cols-1 sm:grid-cols-1';
+  grid.className = isGridView
+    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
+    : 'grid grid-cols-1 gap-3';
+
+  filtered.forEach((c, i) => {
+    const card = document.createElement('div');
+    card.className = 'contact-card glass rounded-2xl p-5 flex items-center gap-4 cursor-default';
+    card.style.animationDelay = `${i * 0.03}s`;
+
+    const initials = c.name.split(' ').map(w => w[0]).join('');
+    const hue = (c.name.charCodeAt(0) * 37) % 360;
+
+    let nameHtml = c.name;
+    if (filter) {
+      const idx = c.name.toLowerCase().indexOf(lowerFilter);
+      if (idx >= 0) {
+        nameHtml = c.name.slice(0, idx) + '<span class="matched-text">' + c.name.slice(idx, idx + filter.length) + '</span>' + c.name.slice(idx + filter.length);
+      }
+    }
+
+    card.innerHTML = `
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style="background: hsl(${hue}, 50%, 25%); color: hsl(${hue}, 80%, 75%);">
+        ${initials}
+      </div>
+      <div class="min-w-0">
+        <div class="font-semibold text-sm truncate">${nameHtml}</div>
+        <div class="text-xs text-gray-500 font-mono mt-0.5">${c.phone}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// Hero search
+const heroSearch = document.getElementById('heroSearch');
+const heroResults = document.getElementById('heroSearchResults');
+heroSearch.addEventListener('input', () => {
+  const q = heroSearch.value.trim();
+  renderContacts(q);
+  if (!q) { heroResults.innerHTML = ''; return; }
+  const results = binarySearchPrefix(CONTACTS, q);
+  if (results.length) {
+    heroResults.innerHTML = `<div class="glass rounded-xl p-3 text-xs text-violet-300 font-mono"><i data-lucide="zap" style="width:12px;height:12px;display:inline;"></i> Binary search found ${results.length} result${results.length !== 1 ? 's' : ''} in O(log n)</div>`;
+  } else {
+    heroResults.innerHTML = `<div class="glass rounded-xl p-3 text-xs text-gray-500">No matches found</div>`;
+  }
+  lucide.createIcons();
+});
+
+function binarySearchPrefix(arr, prefix) {
+  const p = prefix.toLowerCase();
+  let lo = 0, hi = arr.length - 1, first = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (arr[mid].name.toLowerCase().localeCompare(p) < 0) lo = mid + 1;
+    else { first = mid; hi = mid - 1; }
+  }
+  if (first === -1) return [];
+  const results = [];
+  for (let i = first; i < arr.length && arr[i].name.toLowerCase().startsWith(p); i++) results.push(arr[i]);
+  return results;
+}
+
+// Visualization
+function renderVizArray(contacts, states = {}) {
+  const container = document.getElementById('vizArray');
+  container.innerHTML = '';
+  contacts.forEach((c, i) => {
+    const cell = document.createElement('div');
+    const firstName = c.name.split(' ')[0];
+    cell.className = 'arr-cell flex-shrink-0 glass rounded-xl px-4 py-3 text-center min-w-[72px]';
+    if (states[i]) cell.classList.add(states[i]);
+    cell.innerHTML = `<div class="text-xs font-semibold truncate">${firstName}</div><div class="text-[10px] text-gray-500 font-mono mt-1">[${i}]</div>`;
+    container.appendChild(cell);
+  });
+}
+
+async function runViz() {
+  const query = document.getElementById('vizSearch').value.trim();
+  const log = document.getElementById('vizLog');
+  log.innerHTML = '';
+  renderVizArray(CONTACTS);
+
+  if (!query) { addLog(log, '⚡ Type a name and press Run'); return; }
+
+  const target = query.toLowerCase();
+  let lo = 0, hi = CONTACTS.length - 1, step = 0;
+
+  addLog(log, `🔍 Searching for "${query}" in ${CONTACTS.length} sorted contacts...`);
+  await delay(600);
+
+  while (lo <= hi) {
+    step++;
+    const mid = (lo + hi) >> 1;
+    const states = {};
+    for (let i = 0; i < CONTACTS.length; i++) {
+      if (i < lo || i > hi) states[i] = 'dimmed';
+      else states[i] = 'active-range';
+    }
+    states[mid] = 'highlight-mid';
+    renderVizArray(CONTACTS, states);
+    addLog(log, `Step ${step}: Checking index [${mid}] → "${CONTACTS[mid].name}" (range ${lo}–${hi})`);
+    await delay(900);
+
+    const cmp = CONTACTS[mid].name.toLowerCase().localeCompare(target);
+    if (cmp === 0) {
+      states[mid] = 'highlight-found';
+      renderVizArray(CONTACTS, states);
+      addLog(log, `✅ Found "${CONTACTS[mid].name}" at index [${mid}] in ${step} step${step > 1 ? 's' : ''}!`);
+      return;
+    } else if (cmp < 0) {
+      addLog(log, `→ "${CONTACTS[mid].name}" < "${query}", searching right half`);
+      lo = mid + 1;
+    } else {
+      addLog(log, `← "${CONTACTS[mid].name}" > "${query}", searching left half`);
+      hi = mid - 1;
+    }
+    await delay(500);
+  }
+
+  addLog(log, `❌ "${query}" not found after ${step} steps`);
+}
+
+function addLog(container, text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  div.style.animation = 'fadeUp 0.3s ease';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+document.getElementById('vizBtn').addEventListener('click', runViz);
+document.getElementById('vizSearch').addEventListener('keydown', e => { if (e.key === 'Enter') runViz(); });
+
+// View toggle
+document.getElementById('viewGrid').addEventListener('click', () => { isGridView = true; renderContacts(heroSearch.value.trim()); });
+document.getElementById('viewList').addEventListener('click', () => { isGridView = false; renderContacts(heroSearch.value.trim()); });
+
+// Theme toggle
+document.getElementById('themeToggle').addEventListener('click', () => {
+  isDark = !isDark;
+  const app = document.getElementById('app');
+  if (isDark) {
+    document.body.style.background = '#030712';
+    app.style.background = 'radial-gradient(ellipse at 20% 0%, rgba(88,28,135,0.25) 0%, transparent 60%), radial-gradient(ellipse at 80% 100%, rgba(30,58,138,0.2) 0%, transparent 60%), #030712';
+    document.body.style.color = '#fff';
+  } else {
+    document.body.style.background = '#f8fafc';
+    app.style.background = 'radial-gradient(ellipse at 20% 0%, rgba(139,92,246,0.08) 0%, transparent 60%), radial-gradient(ellipse at 80% 100%, rgba(59,130,246,0.06) 0%, transparent 60%), #f8fafc';
+    document.body.style.color = '#1e293b';
+  }
+});
+
+// Init
+renderContacts();
+renderVizArray(CONTACTS);
+lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eac2697776d3fea',t:'MTc3NTkzMzE1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
