@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File System Directory</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
+    
+    body {
+      background: linear-gradient(135deg, #f0f2f5 0%, #e8eaed 100%);
+      font-family: 'Segoe UI', sans-serif;
+      color: #1c1c1c;
+    }
+    
+    .explorer-window {
+      background: #ffffff;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+    }
+    
+    .window-header {
+      background: linear-gradient(to right, #0078d4, #107c10);
+      color: white;
+      padding: 8px 12px;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 4px 4px 0 0;
+      user-select: none;
+    }
+    
+    .toolbar {
+      background: #f3f3f3;
+      border-bottom: 1px solid #d0d0d0;
+      padding: 8px 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .toolbar-btn {
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      padding: 4px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s ease;
+    }
+    
+    .toolbar-btn:hover {
+      background: #e0e0e0;
+      border-color: #0078d4;
+    }
+    
+    .breadcrumb {
+      background: #fafafa;
+      border-bottom: 1px solid #d0d0d0;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+    }
+    
+    .breadcrumb-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .breadcrumb-item a {
+      color: #0078d4;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    
+    .breadcrumb-item a:hover {
+      text-decoration: underline;
+    }
+    
+    .breadcrumb-separator {
+      color: #999;
+    }
+    
+    .content-area {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .sidebar {
+      background: #f8f8f8;
+      border-right: 1px solid #d0d0d0;
+      width: 180px;
+      padding: 8px 0;
+      overflow-y: auto;
+    }
+    
+    .sidebar-item {
+      padding: 6px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    
+    .sidebar-item:hover {
+      background: #e0e0e0;
+    }
+    
+    .sidebar-item.active {
+      background: #0078d4;
+      color: white;
+    }
+    
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    
+    .tree-container {
+      font-size: 13px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    
+    .tree-item {
+      margin: 2px 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: 2px;
+      user-select: none;
+    }
+    
+    .tree-item:hover {
+      background: #f0f0f0;
+    }
+    
+    .tree-item.traversed {
+      background: #e7f1ff;
+      border-left: 3px solid #0078d4;
+      padding-left: 5px;
+    }
+    
+    .tree-item.current {
+      background: #b4d7ff;
+      border-left: 3px solid #0078d4;
+      padding-left: 5px;
+      font-weight: 600;
+    }
+    
+    .tree-toggle {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    
+    .tree-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+    
+    .tree-children {
+      margin-left: 20px;
+    }
+    
+    .tree-children.hidden {
+      display: none;
+    }
+    
+    .control-panel {
+      background: #f3f3f3;
+      border-top: 1px solid #d0d0d0;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    
+    .control-btn {
+      background: #0078d4;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 2px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+    
+    .control-btn:hover {
+      background: #106ebe;
+    }
+    
+    .control-btn.secondary {
+      background: #e0e0e0;
+      color: #1c1c1c;
+    }
+    
+    .control-btn.secondary:hover {
+      background: #d0d0d0;
+    }
+    
+    .status-bar {
+      background: #f0f0f0;
+      border-top: 1px solid #d0d0d0;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .traversal-legend {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      padding: 8px;
+      background: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 2px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+    }
+    
+    .legend-traversed { background: #b4d7ff; }
+    .legend-current { background: #0078d4; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full flex items-center justify-center p-4">
+  <div class="explorer-window" style="max-width: 900px; width: 100%;"><!-- Window Header -->
+   <div class="window-header" id="windowHeader">
+    File System Directory
+   </div><!-- Toolbar -->
+   <div class="toolbar"><button class="toolbar-btn" id="backBtn">← Back</button> <button class="toolbar-btn" id="forwardBtn">→ Forward</button> <button class="toolbar-btn" id="upBtn">⬆ Up</button> <button class="toolbar-btn" id="refreshBtn">🔄 Refresh</button>
+   </div><!-- Breadcrumb -->
+   <div class="breadcrumb" id="breadcrumb">
+    <div class="breadcrumb-item">
+     <i data-lucide="hard-drive" class="inline" style="width: 14px; height: 14px;"></i> <span id="breadcrumbPath">C:\Users\System</span>
+    </div>
+   </div><!-- Content -->
+   <div class="content-area"><!-- Sidebar -->
+    <div class="sidebar">
+     <div class="sidebar-item active" data-folder="root"><i data-lucide="hard-drive" style="width: 16px; height: 16px;"></i> <span>Computer</span>
+     </div>
+     <div class="sidebar-item" data-folder="docs"><i data-lucide="folder" style="width: 16px; height: 16px;"></i> <span>Documents</span>
+     </div>
+     <div class="sidebar-item" data-folder="downloads"><i data-lucide="download" style="width: 16px; height: 16px;"></i> <span>Downloads</span>
+     </div>
+     <div class="sidebar-item" data-folder="pictures"><i data-lucide="image" style="width: 16px; height: 16px;"></i> <span>Pictures</span>
+     </div>
+     <div class="sidebar-item" data-folder="music"><i data-lucide="music" style="width: 16px; height: 16px;"></i> <span>Music</span>
+     </div>
+    </div><!-- Main Content -->
+    <div class="main-content" id="mainContent"><!-- Traversal Legend -->
+     <div class="traversal-legend">
+      <div class="legend-item">
+       <div class="legend-dot legend-traversed"></div><span>Traversed</span>
+      </div>
+      <div class="legend-item">
+       <div class="legend-dot legend-current"></div><span>Current</span>
+      </div>
+     </div><!-- Tree Container -->
+     <div class="tree-container" id="treeContainer"></div>
+    </div>
+   </div><!-- Control Panel -->
+   <div class="control-panel"><button class="control-btn" id="preorderBtn">Pre-order Traverse</button> <button class="control-btn" id="inorderBtn">In-order Traverse</button> <button class="control-btn" id="postorderBtn">Post-order Traverse</button>
+   </div><!-- Status Bar -->
+   <div class="status-bar"><span id="statusText">Ready</span> <span id="itemCount">0 items</span>
+   </div>
+  </div>
+  <script>
+    // File system tree structure
+    const fileSystem = {
+      name: 'Computer',
+      type: 'folder',
+      path: 'C:\\',
+      children: [
+        {
+          name: 'Users',
+          type: 'folder',
+          path: 'C:\\Users',
+          children: [
+            {
+              name: 'Documents',
+              type: 'folder',
+              path: 'C:\\Users\\Documents',
+              children: [
+                { name: 'Resume.pdf', type: 'file', path: 'C:\\Users\\Documents\\Resume.pdf' },
+                { name: 'CoverLetter.docx', type: 'file', path: 'C:\\Users\\Documents\\CoverLetter.docx' },
+                {
+                  name: 'Projects',
+                  type: 'folder',
+                  path: 'C:\\Users\\Documents\\Projects',
+                  children: [
+                    { name: 'Website.zip', type: 'file', path: 'C:\\Users\\Documents\\Projects\\Website.zip' },
+                    { name: 'App.exe', type: 'file', path: 'C:\\Users\\Documents\\Projects\\App.exe' }
+                  ]
+                }
+              ]
+            },
+            {
+              name: 'Downloads',
+              type: 'folder',
+              path: 'C:\\Users\\Downloads',
+              children: [
+                { name: 'Installer.exe', type: 'file', path: 'C:\\Users\\Downloads\\Installer.exe' },
+                { name: 'Music.zip', type: 'file', path: 'C:\\Users\\Downloads\\Music.zip' }
+              ]
+            },
+            {
+              name: 'Pictures',
+              type: 'folder',
+              path: 'C:\\Users\\Pictures',
+              children: [
+                { name: 'Vacation',
+                  type: 'folder',
+                  path: 'C:\\Users\\Pictures\\Vacation',
+                  children: [
+                    { name: 'Beach.jpg', type: 'file', path: 'C:\\Users\\Pictures\\Vacation\\Beach.jpg' }
+                  ]
+                },
+                { name: 'Photo.png', type: 'file', path: 'C:\\Users\\Pictures\\Photo.png' }
+              ]
+            }
+          ]
+        },
+        {
+          name: 'Program Files',
+          type: 'folder',
+          path: 'C:\\Program Files',
+          children: [
+            { name: 'App1', type: 'folder', path: 'C:\\Program Files\\App1', children: [] },
+            { name: 'App2', type: 'folder', path: 'C:\\Program Files\\App2', children: [] }
+          ]
+        }
+      ]
+    };
+
+    let currentNode = fileSystem;
+    let expandedNodes = new Set();
+    let traversalOrder = [];
+    let currentTraversalIndex = -1;
+
+    function renderTree(node, container, level = 0) {
+      if (!node.children) return;
+      
+      node.children.forEach((child, index) => {
+        const item = document.createElement('div');
+        item.className = 'tree-item';
+        item.dataset.path = child.path;
+        item.style.marginLeft = `${level * 20}px`;
+
+        const toggle = document.createElement('div');
+        toggle.className = 'tree-toggle';
+        
+        if (child.children && child.children.length > 0) {
+          const icon = expandedNodes.has(child.path) ? '▼' : '▶';
+          toggle.innerHTML = icon;
+          toggle.style.cursor = 'pointer';
+          toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFolder(child);
+          });
+        } else {
+          toggle.innerHTML = '  ';
+        }
+
+        const icon = document.createElement('i');
+        icon.setAttribute('data-lucide', child.type === 'folder' ? 'folder' : 'file');
+        icon.className = 'tree-icon';
+
+        const label = document.createElement('span');
+        label.textContent = child.name;
+
+        item.appendChild(toggle);
+        item.appendChild(icon);
+        item.appendChild(label);
+
+        item.addEventListener('click', () => {
+          if (child.type === 'folder') {
+            currentNode = child;
+            updateBreadcrumb();
+            renderContent();
+          }
+        });
+
+        container.appendChild(item);
+
+        if (expandedNodes.has(child.path) && child.children) {
+          renderTree(child, container, level + 1);
+        }
+      });
+    }
+
+    function toggleFolder(node) {
+      if (expandedNodes.has(node.path)) {
+        expandedNodes.delete(node.path);
+      } else {
+        expandedNodes.add(node.path);
+      }
+      renderContent();
+    }
+
+    function updateBreadcrumb() {
+      document.getElementById('breadcrumbPath').textContent = currentNode.path;
+    }
+
+    function renderContent() {
+      const container = document.getElementById('treeContainer');
+      container.innerHTML = '<div class="traversal-legend"><div class="legend-item"><div class="legend-dot legend-traversed"></div><span>Traversed</span></div><div class="legend-item"><div class="legend-dot legend-current"></div><span>Current</span></div></div>';
+      renderTree(currentNode, container);
+      updateStatusBar();
+      lucide.createIcons();
+    }
+
+    function updateStatusBar() {
+      const itemCount = currentNode.children ? currentNode.children.length : 0;
+      document.getElementById('itemCount').textContent = `${itemCount} items`;
+    }
+
+    function preorderTraverse(node = fileSystem) {
+      traversalOrder = [];
+      currentTraversalIndex = 0;
+
+      function traverse(n) {
+        traversalOrder.push(n.path);
+        if (n.children) {
+          n.children.forEach(child => traverse(child));
+        }
+      }
+
+      traverse(node);
+      animateTraversal();
+    }
+
+    function inorderTraverse(node = fileSystem) {
+      traversalOrder = [];
+      currentTraversalIndex = 0;
+
+      function traverse(n) {
+        if (n.children && n.children.length > 0) {
+          const mid = Math.floor(n.children.length / 2);
+          for (let i = 0; i < mid; i++) traverse(n.children[i]);
+          traversalOrder.push(n.path);
+          for (let i = mid; i < n.children.length; i++) traverse(n.children[i]);
+        } else {
+          traversalOrder.push(n.path);
+        }
+      }
+
+      traverse(node);
+      animateTraversal();
+    }
+
+    function postorderTraverse(node = fileSystem) {
+      traversalOrder = [];
+      currentTraversalIndex = 0;
+
+      function traverse(n) {
+        if (n.children) {
+          n.children.forEach(child => traverse(child));
+        }
+        traversalOrder.push(n.path);
+      }
+
+      traverse(node);
+      animateTraversal();
+    }
+
+    function animateTraversal() {
+      expandedNodes.clear();
+      collectAllPaths(fileSystem);
+      renderContent();
+      
+      currentTraversalIndex = 0;
+      const interval = setInterval(() => {
+        if (currentTraversalIndex < traversalOrder.length) {
+          const path = traversalOrder[currentTraversalIndex];
+          const items = document.querySelectorAll(`[data-path="${path}"]`);
+          items.forEach(item => {
+            item.classList.add('traversed');
+            if (currentTraversalIndex === traversalOrder.length - 1) {
+              item.classList.add('current');
+            }
+          });
+          currentTraversalIndex++;
+        } else {
+          clearInterval(interval);
+          document.getElementById('statusText').textContent = 'Traversal complete';
+        }
+      }, 300);
+    }
+
+    function collectAllPaths(node) {
+      expandedNodes.add(node.path);
+      if (node.children) {
+        node.children.forEach(child => collectAllPaths(child));
+      }
+    }
+
+    // Event listeners
+    document.getElementById('preorderBtn').addEventListener('click', () => {
+      document.getElementById('statusText').textContent = 'Pre-order traversal...';
+      preorderTraverse();
+    });
+
+    document.getElementById('inorderBtn').addEventListener('click', () => {
+      document.getElementById('statusText').textContent = 'In-order traversal...';
+      inorderTraverse();
+    });
+
+    document.getElementById('postorderBtn').addEventListener('click', () => {
+      document.getElementById('statusText').textContent = 'Post-order traversal...';
+      postorderTraverse();
+    });
+
+    document.getElementById('backBtn').addEventListener('click', () => {
+      document.getElementById('statusText').textContent = 'Navigation not available in demo';
+    });
+
+    document.getElementById('forwardBtn').addEventListener('click', () => {
+      document.getElementById('statusText').textContent = 'Navigation not available in demo';
+    });
+
+    document.getElementById('upBtn').addEventListener('click', () => {
+      if (currentNode.path !== 'C:\\') {
+        document.getElementById('statusText').textContent = 'Navigation not available in demo';
+      }
+    });
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      renderContent();
+      document.getElementById('statusText').textContent = 'Refreshed';
+    });
+
+    // Sidebar navigation
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        
+        const folderMap = {
+          'root': fileSystem,
+          'docs': fileSystem.children[0].children[0],
+          'downloads': fileSystem.children[0].children[1],
+          'pictures': fileSystem.children[0].children[2],
+          'music': fileSystem.children[0].children[3]
+        };
+        
+        currentNode = folderMap[item.dataset.folder] || fileSystem;
+        updateBreadcrumb();
+        renderContent();
+      });
+    });
+
+    // Element SDK
+    const defaultConfig = {
+      window_title: 'File System Directory',
+      breadcrumb_text: 'C:\\Users\\System',
+      primary_color: '#0078d4',
+      secondary_color: '#107c10',
+      background_color: '#f0f2f5',
+      text_color: '#1c1c1c',
+      font_family: 'Segoe UI',
+      font_size: 13
+    };
+
+    function applyConfig(config) {
+      const c = { ...defaultConfig, ...config };
+      document.getElementById('windowHeader').textContent = c.window_title;
+      document.getElementById('breadcrumbPath').textContent = c.breadcrumb_text;
+    }
+
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange: async (config) => applyConfig(config),
+      mapToCapabilities: (config) => ({
+        recolorables: [
+          { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => { config.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); } },
+          { get: () => config.secondary_color || defaultConfig.secondary_color, set: (v) => { config.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); } },
+          { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+          { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } }
+        ],
+        borderables: [],
+        fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
+        fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); } }
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ['window_title', config.window_title || defaultConfig.window_title],
+        ['breadcrumb_text', config.breadcrumb_text || defaultConfig.breadcrumb_text]
+      ])
+    });
+
+    // Initialize
+    renderContent();
+    lucide.createIcons();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eac438d11b93fea',t:'MTc3NTkzNDMzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
