@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser History System</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&amp;family=Outfit:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html, body { height: 100%; margin: 0; }
+
+    .stack-item-enter {
+      animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    .stack-item-exit {
+      animation: slideUp 0.35s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-30px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes slideUp {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(-30px) scale(0.95); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(99,226,184,0.4); }
+      50% { box-shadow: 0 0 20px 6px rgba(99,226,184,0.15); }
+    }
+    .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeInUp 0.6s ease forwards; }
+    .fade-up-d1 { animation-delay: 0.1s; opacity: 0; }
+    .fade-up-d2 { animation-delay: 0.2s; opacity: 0; }
+    .fade-up-d3 { animation-delay: 0.3s; opacity: 0; }
+    .fade-up-d4 { animation-delay: 0.4s; opacity: 0; }
+    .fade-up-d5 { animation-delay: 0.5s; opacity: 0; }
+
+    .glass {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .glass-light {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .arrow-bounce { animation: arrowBounce 1.5s ease-in-out infinite; }
+    @keyframes arrowBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .tab-active { background: rgba(255,255,255,0.1); }
+    .tab-active-light { background: rgba(255,255,255,0.9); }
+
+    .theme-dark { --bg: #0f1117; --surface: rgba(255,255,255,0.06); --text: #e2e8f0; --muted: #64748b; --accent: #63e2b8; --accent2: #818cf8; }
+    .theme-light { --bg: #f0f2f5; --surface: rgba(255,255,255,0.85); --text: #1e293b; --muted: #64748b; --accent: #10b981; --accent2: #6366f1; }
+
+    body { background: var(--bg); color: var(--text); transition: background 0.4s, color 0.4s; }
+
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 3px; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full theme-dark">
+  <div id="app-wrapper" class="h-full w-full overflow-auto"><!-- Floating Theme Toggle --> <button id="themeToggle" onclick="toggleTheme()" class="fixed top-4 right-4 z-50 w-11 h-11 rounded-full glass flex items-center justify-center hover:scale-110 transition-transform" aria-label="Toggle theme"> <i data-lucide="moon" id="themeIconMoon" class="w-5 h-5"></i> <i data-lucide="sun" id="themeIconSun" class="w-5 h-5 hidden"></i> </button> <!-- Section 1: Fake Browser UI -->
+   <section class="max-w-4xl mx-auto px-4 pt-12 pb-8 fade-up">
+    <h1 id="siteTitle" class="font-display font-800 text-4xl md:text-5xl text-center mb-2 tracking-tight" style="background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Browser History System</h1>
+    <p class="text-center mb-8 font-display font-300 opacity-60 text-sm">Explore how browser navigation uses a Stack (LIFO) data structure</p><!-- Browser Window -->
+    <div id="browserWindow" class="rounded-2xl overflow-hidden shadow-2xl" style="border: 1px solid rgba(255,255,255,0.08);"><!-- Title Bar -->
+     <div id="browserTitleBar" class="flex items-center gap-2 px-4 py-3" style="background: rgba(255,255,255,0.04);"><span class="status-dot" style="background:#ff5f57;"></span> <span class="status-dot" style="background:#ffbd2e;"></span> <span class="status-dot" style="background:#28ca42;"></span>
+      <div class="flex items-center gap-1 ml-4 flex-1">
+       <div id="tabActive" class="tab-active rounded-lg px-4 py-1.5 text-xs font-mono flex items-center gap-2 cursor-default"><i data-lucide="globe" class="w-3 h-3 opacity-50"></i> <span id="tabLabel">New Tab</span>
+       </div>
+      </div>
+     </div><!-- URL Bar -->
+     <div id="browserUrlBar" class="flex items-center gap-2 px-4 py-2.5" style="background: rgba(255,255,255,0.02);"><button onclick="goBack()" id="btnBack" class="p-1.5 rounded-lg hover:bg-white/10 transition disabled:opacity-20" aria-label="Go back" disabled> <i data-lucide="chevron-left" class="w-4 h-4"></i> </button> <button onclick="goForward()" id="btnForward" class="p-1.5 rounded-lg hover:bg-white/10 transition disabled:opacity-20" aria-label="Go forward" disabled> <i data-lucide="chevron-right" class="w-4 h-4"></i> </button> <button onclick="refreshPage()" class="p-1.5 rounded-lg hover:bg-white/10 transition" aria-label="Refresh"> <i data-lucide="rotate-cw" class="w-4 h-4 opacity-60"></i> </button>
+      <div id="urlBarContainer" class="flex-1 flex items-center gap-2 rounded-xl px-4 py-2 font-mono text-sm" style="background: rgba(255,255,255,0.06);"><i data-lucide="lock" class="w-3.5 h-3.5 opacity-40"></i> <span id="urlDisplay" class="opacity-70 truncate">about:blank</span>
+      </div>
+     </div><!-- Browser Content -->
+     <div id="browserContent" class="px-6 py-8 text-center min-h-[140px] flex flex-col items-center justify-center" style="background: rgba(255,255,255,0.02);">
+      <p id="pageContent" class="font-display text-lg opacity-50">Open a new tab or visit a page</p>
+      <p id="pageSubtext" class="font-mono text-xs mt-2 opacity-30">Navigate using the controls below</p>
+     </div>
+    </div><!-- Control Buttons -->
+    <div class="flex flex-wrap justify-center gap-3 mt-6 fade-up fade-up-d1">
+     <div class="relative"><select id="urlSelect" class="appearance-none font-mono text-sm rounded-xl px-4 py-2.5 pr-10 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-400/50 transition" style="background: var(--surface); border: 1px solid rgba(255,255,255,0.1); color: var(--text);"> <option value="">Choose a URL...</option> <option value="google.com">google.com</option> <option value="github.com">github.com</option> <option value="stackoverflow.com">stackoverflow.com</option> <option value="youtube.com">youtube.com</option> <option value="reddit.com/r/programming">reddit.com/r/programming</option> <option value="docs.python.org">docs.python.org</option> <option value="developer.mozilla.org">developer.mozilla.org</option> </select> <i data-lucide="chevron-down" class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-40"></i>
+     </div><button onclick="visitPage()" class="font-display font-600 text-sm rounded-xl px-5 py-2.5 flex items-center gap-2 transition hover:scale-105 active:scale-95" style="background: var(--accent); color: #0f1117;"> <i data-lucide="plus" class="w-4 h-4"></i> Visit Page </button> <button onclick="goBack()" class="font-display font-500 text-sm rounded-xl px-5 py-2.5 flex items-center gap-2 glass hover:bg-white/10 transition hover:scale-105 active:scale-95"> <i data-lucide="arrow-left" class="w-4 h-4"></i> Go Back </button> <button onclick="peekCurrent()" class="font-display font-500 text-sm rounded-xl px-5 py-2.5 flex items-center gap-2 glass hover:bg-white/10 transition hover:scale-105 active:scale-95"> <i data-lucide="eye" class="w-4 h-4"></i> Current Page </button>
+    </div><!-- Notification Toast -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 font-mono text-sm px-5 py-3 rounded-xl shadow-lg transition-all duration-300 opacity-0 pointer-events-none" style="background: var(--accent); color: #0f1117;"><span id="toastMsg"></span>
+    </div>
+   </section><!-- Section 2 & 3: Live History + Stack Visualization -->
+   <section class="max-w-5xl mx-auto px-4 py-12">
+    <div class="grid md:grid-cols-2 gap-8"><!-- History List -->
+     <div class="fade-up fade-up-d2">
+      <h2 class="font-display font-700 text-2xl mb-4 flex items-center gap-2"><i data-lucide="history" class="w-5 h-5" style="color: var(--accent);"></i> Visit History</h2>
+      <div id="historyList" class="space-y-2 min-h-[120px]">
+       <p class="font-mono text-sm opacity-30 py-8 text-center">No pages visited yet</p>
+      </div>
+     </div><!-- Stack Visualization -->
+     <div class="fade-up fade-up-d3">
+      <h2 class="font-display font-700 text-2xl mb-4 flex items-center gap-2"><i data-lucide="layers" class="w-5 h-5" style="color: var(--accent2);"></i> Stack Visualization</h2>
+      <div class="relative"><!-- Push/Pop Arrows -->
+       <div class="absolute -left-12 top-0 flex-col items-center gap-1 hidden md:flex"><span class="font-mono text-[10px] font-bold tracking-widest" style="color: var(--accent);">PUSH</span> <i data-lucide="arrow-down" class="w-4 h-4 arrow-bounce" style="color: var(--accent);"></i>
+       </div>
+       <div class="absolute -right-12 top-0 flex-col items-center gap-1 hidden md:flex"><i data-lucide="arrow-up" class="w-4 h-4 arrow-bounce" style="color: var(--accent2);"></i> <span class="font-mono text-[10px] font-bold tracking-widest" style="color: var(--accent2);">POP</span>
+       </div>
+       <div id="stackViz" class="space-y-2 min-h-[120px]">
+        <div class="rounded-xl py-8 text-center font-mono text-sm opacity-30 border-2 border-dashed" style="border-color: rgba(255,255,255,0.1);">
+         Stack is empty
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Section 4: How It Works -->
+   <section class="max-w-4xl mx-auto px-4 py-12 fade-up fade-up-d4">
+    <h2 class="font-display font-700 text-2xl text-center mb-8">How It Works</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+     <div class="glass rounded-2xl p-6 text-center hover:scale-[1.03] transition-transform">
+      <div class="w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center text-2xl" style="background: rgba(99,226,184,0.15);"><i data-lucide="plus-circle" class="w-7 h-7" style="color: var(--accent);"></i>
+      </div>
+      <h3 class="font-display font-600 text-lg mb-1">Visit Page</h3>
+      <p class="font-mono text-xs opacity-50">push(url)</p>
+      <p class="font-display font-300 text-sm mt-2 opacity-60">URL gets added to the top of the stack</p>
+      <div class="mt-3 flex justify-center"><i data-lucide="arrow-down" class="w-5 h-5 opacity-30"></i>
+      </div>
+     </div>
+     <div class="glass rounded-2xl p-6 text-center hover:scale-[1.03] transition-transform">
+      <div class="w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center text-2xl" style="background: rgba(129,140,248,0.15);"><i data-lucide="undo-2" class="w-7 h-7" style="color: var(--accent2);"></i>
+      </div>
+      <h3 class="font-display font-600 text-lg mb-1">Go Back</h3>
+      <p class="font-mono text-xs opacity-50">pop()</p>
+      <p class="font-display font-300 text-sm mt-2 opacity-60">Removes the most recent page from the stack</p>
+      <div class="mt-3 flex justify-center"><i data-lucide="arrow-up" class="w-5 h-5 opacity-30"></i>
+      </div>
+     </div>
+     <div class="glass rounded-2xl p-6 text-center hover:scale-[1.03] transition-transform">
+      <div class="w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center text-2xl" style="background: rgba(251,191,36,0.15);"><i data-lucide="eye" class="w-7 h-7" style="color: #fbbf24;"></i>
+      </div>
+      <h3 class="font-display font-600 text-lg mb-1">Current Page</h3>
+      <p class="font-mono text-xs opacity-50">peek()</p>
+      <p class="font-display font-300 text-sm mt-2 opacity-60">Shows the top URL without removing it</p>
+      <div class="mt-3 flex justify-center"><i data-lucide="scan" class="w-5 h-5 opacity-30"></i>
+      </div>
+     </div>
+    </div>
+   </section><!-- Section 5: Real-Life Analogy -->
+   <section class="max-w-3xl mx-auto px-4 py-12 fade-up fade-up-d5">
+    <div class="glass rounded-2xl p-8 md:p-10 relative overflow-hidden">
+     <div class="absolute top-0 right-0 w-40 h-40 rounded-full opacity-10" style="background: var(--accent); filter: blur(60px);"></div>
+     <div class="flex items-start gap-5">
+      <div class="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 text-3xl" style="background: rgba(99,226,184,0.1);">
+       📖
+      </div>
+      <div>
+       <h2 class="font-display font-700 text-2xl mb-3">Real-Life Analogy</h2>
+       <p id="analogyText" class="font-display font-300 leading-relaxed opacity-70">Think of it like flipping pages in a notebook. Each new page you visit stacks on top. Pressing "Back" is like peeling off the top page to return to the previous one. You always see the last page you opened — that's LIFO (Last In, First Out) in action.</p>
+       <div class="flex items-center gap-4 mt-5 font-mono text-xs opacity-40"><span class="flex items-center gap-1"><i data-lucide="book-open" class="w-3.5 h-3.5"></i> Notebook pages</span> <span class="flex items-center gap-1"><i data-lucide="smartphone" class="w-3.5 h-3.5"></i> App navigation</span> <span class="flex items-center gap-1"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i> Undo actions</span>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Section 6: Tech Tags -->
+   <section class="max-w-3xl mx-auto px-4 pt-4 pb-16 text-center">
+    <div class="flex flex-wrap justify-center gap-3"><span class="font-mono text-xs px-4 py-2 rounded-full glass hover:scale-105 transition-transform cursor-default flex items-center gap-2"> <i data-lucide="layers" class="w-3.5 h-3.5" style="color: var(--accent);"></i> Stack </span> <span class="font-mono text-xs px-4 py-2 rounded-full glass hover:scale-105 transition-transform cursor-default flex items-center gap-2"> <i data-lucide="arrow-down-up" class="w-3.5 h-3.5" style="color: var(--accent2);"></i> LIFO Principle </span> <span class="font-mono text-xs px-4 py-2 rounded-full glass hover:scale-105 transition-transform cursor-default flex items-center gap-2"> <i data-lucide="database" class="w-3.5 h-3.5" style="color: #fbbf24;"></i> Data Structures </span> <span class="font-mono text-xs px-4 py-2 rounded-full glass hover:scale-105 transition-transform cursor-default flex items-center gap-2"> <i data-lucide="globe" class="w-3.5 h-3.5" style="color: #f472b6;"></i> Browser Navigation </span>
+    </div>
+    <p class="font-mono text-xs mt-8 opacity-20">Built with Stack Data Structure principles</p>
+   </section>
+  </div>
+  <script>
+    // State
+    let historyStack = [];
+    let forwardStack = [];
+    let isDark = true;
+
+    const siteIcons = {
+      'google.com': '🔍', 'github.com': '🐙', 'stackoverflow.com': '📚',
+      'youtube.com': '▶️', 'reddit.com/r/programming': '🤖',
+      'docs.python.org': '🐍', 'developer.mozilla.org': '🦊'
+    };
+    const siteColors = {
+      'google.com': '#4285f4', 'github.com': '#8b5cf6', 'stackoverflow.com': '#f48024',
+      'youtube.com': '#ff0000', 'reddit.com/r/programming': '#ff4500',
+      'docs.python.org': '#3776ab', 'developer.mozilla.org': '#e66000'
+    };
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      t.style.opacity = '1'; t.style.transform = 'translate(-50%, 0)';
+      setTimeout(() => { t.style.opacity = '0'; }, 2000);
+    }
+
+    function visitPage() {
+      const sel = document.getElementById('urlSelect');
+      const url = sel.value;
+      if (!url) { showToast('Select a URL first'); return; }
+      historyStack.push(url);
+      forwardStack = [];
+      sel.value = '';
+      updateUI();
+      showToast(`Pushed: ${url}`);
+    }
+
+    function goBack() {
+      if (historyStack.length === 0) { showToast('Stack is empty!'); return; }
+      const popped = historyStack.pop();
+      forwardStack.push(popped);
+      updateUI();
+      showToast(`Popped: ${popped}`);
+    }
+
+    function goForward() {
+      if (forwardStack.length === 0) return;
+      const url = forwardStack.pop();
+      historyStack.push(url);
+      updateUI();
+      showToast(`Forward: ${url}`);
+    }
+
+    function refreshPage() {
+      if (historyStack.length > 0) showToast(`Refreshed: ${historyStack[historyStack.length - 1]}`);
+    }
+
+    function peekCurrent() {
+      if (historyStack.length === 0) { showToast('No page to show!'); return; }
+      const top = historyStack[historyStack.length - 1];
+      showToast(`Current: ${top}`);
+      // Highlight top
+      const topEl = document.querySelector('#stackViz > div:first-child');
+      if (topEl) {
+        topEl.style.transform = 'scale(1.03)';
+        setTimeout(() => topEl.style.transform = '', 400);
+      }
+    }
+
+    function updateUI() {
+      const current = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
+
+      // URL bar
+      document.getElementById('urlDisplay').textContent = current ? `https://${current}` : 'about:blank';
+      document.getElementById('tabLabel').textContent = current || 'New Tab';
+
+      // Browser content
+      const icon = current ? (siteIcons[current] || '🌐') : '';
+      document.getElementById('pageContent').innerHTML = current
+        ? `<span class="text-3xl mb-2 block">${icon}</span><span class="font-display font-600">${current}</span>`
+        : 'Open a new tab or visit a page';
+      document.getElementById('pageSubtext').textContent = current
+        ? `You're viewing ${current}` : 'Navigate using the controls below';
+
+      // Nav buttons
+      document.getElementById('btnBack').disabled = historyStack.length === 0;
+      document.getElementById('btnForward').disabled = forwardStack.length === 0;
+
+      // History list
+      const hl = document.getElementById('historyList');
+      if (historyStack.length === 0) {
+        hl.innerHTML = '<p class="font-mono text-sm opacity-30 py-8 text-center">No pages visited yet</p>';
+      } else {
+        hl.innerHTML = '';
+        for (let i = historyStack.length - 1; i >= 0; i--) {
+          const url = historyStack[i];
+          const isTop = i === historyStack.length - 1;
+          const color = siteColors[url] || 'var(--accent)';
+          const div = document.createElement('div');
+          div.className = `flex items-center gap-3 rounded-xl px-4 py-3 font-mono text-sm stack-item-enter transition-all ${isTop ? 'pulse-glow' : ''}`;
+          div.style.cssText = isTop
+            ? `background: rgba(99,226,184,0.1); border: 1px solid rgba(99,226,184,0.3);`
+            : `background: var(--surface); border: 1px solid rgba(255,255,255,0.05); opacity: ${0.4 + (i / historyStack.length) * 0.5};`;
+          div.innerHTML = `
+            <span class="text-lg">${siteIcons[url] || '🌐'}</span>
+            <span class="flex-1 truncate">${url}</span>
+            ${isTop ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background: var(--accent); color: #0f1117;">TOP</span>' : `<span class="text-[10px] opacity-30">#${i}</span>`}
+          `;
+          hl.appendChild(div);
+        }
+      }
+
+      // Stack visualization
+      const sv = document.getElementById('stackViz');
+      if (historyStack.length === 0) {
+        sv.innerHTML = '<div class="rounded-xl py-8 text-center font-mono text-sm opacity-30 border-2 border-dashed" style="border-color: rgba(255,255,255,0.1);">Stack is empty</div>';
+      } else {
+        sv.innerHTML = '';
+        for (let i = historyStack.length - 1; i >= 0; i--) {
+          const url = historyStack[i];
+          const isTop = i === historyStack.length - 1;
+          const color = siteColors[url] || '#63e2b8';
+          const depth = historyStack.length - 1 - i;
+          const div = document.createElement('div');
+          div.className = 'rounded-xl px-4 py-3 font-mono text-sm flex items-center gap-3 stack-item-enter transition-all';
+          div.style.cssText = `background: ${color}${isTop ? '22' : '0d'}; border-left: 3px solid ${color}; opacity: ${1 - depth * 0.12}; transform: scale(${1 - depth * 0.015});`;
+          div.innerHTML = `
+            <span class="text-lg">${siteIcons[url] || '🌐'}</span>
+            <span class="flex-1 truncate">${url}</span>
+            ${isTop ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:' + color + '; color: #0f1117;">← TOP</span>' : ''}
+          `;
+          sv.appendChild(div);
+        }
+      }
+    }
+
+    function toggleTheme() {
+      isDark = !isDark;
+      document.body.classList.toggle('theme-dark', isDark);
+      document.body.classList.toggle('theme-light', !isDark);
+      document.getElementById('themeIconMoon').classList.toggle('hidden', !isDark);
+      document.getElementById('themeIconSun').classList.toggle('hidden', isDark);
+
+      // Update glass elements for light theme
+      const selects = document.querySelectorAll('select');
+      selects.forEach(s => {
+        s.style.background = isDark ? 'var(--surface)' : 'rgba(255,255,255,0.9)';
+        s.style.borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.12)';
+      });
+    }
+
+    // Elements SDK
+    const defaultConfig = {
+      site_title: 'Browser History System',
+      analogy_text: 'Think of it like flipping pages in a notebook. Each new page you visit stacks on top. Pressing "Back" is like peeling off the top page to return to the previous one. You always see the last page you opened — that\'s LIFO (Last In, First Out) in action.',
+      background_color: '#0f1117',
+      surface_color: '#1a1c25',
+      text_color: '#e2e8f0',
+      accent_color: '#63e2b8',
+      accent2_color: '#818cf8',
+      font_family: 'Outfit',
+      font_size: 16
+    };
+
+    function applyConfig(config) {
+      const title = config.site_title || defaultConfig.site_title;
+      const analogy = config.analogy_text || defaultConfig.analogy_text;
+      const bg = config.background_color || defaultConfig.background_color;
+      const surface = config.surface_color || defaultConfig.surface_color;
+      const text = config.text_color || defaultConfig.text_color;
+      const accent = config.accent_color || defaultConfig.accent_color;
+      const accent2 = config.accent2_color || defaultConfig.accent2_color;
+      const font = config.font_family || defaultConfig.font_family;
+      const size = config.font_size || defaultConfig.font_size;
+
+      document.getElementById('siteTitle').textContent = title;
+      document.getElementById('analogyText').textContent = analogy;
+
+      document.documentElement.style.setProperty('--bg', bg);
+      document.documentElement.style.setProperty('--surface', surface);
+      document.documentElement.style.setProperty('--text', text);
+      document.documentElement.style.setProperty('--accent', accent);
+      document.documentElement.style.setProperty('--accent2', accent2);
+
+      document.body.style.fontFamily = `${font}, Outfit, sans-serif`;
+      const baseSize = size;
+      document.getElementById('siteTitle').style.fontSize = `${baseSize * 2.8}px`;
+      document.getElementById('analogyText').style.fontSize = `${baseSize}px`;
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: async (config) => applyConfig(config),
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+            { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+            { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+            { get: () => config.accent_color || defaultConfig.accent_color, set: (v) => { config.accent_color = v; window.elementSdk.setConfig({ accent_color: v }); } },
+            { get: () => config.accent2_color || defaultConfig.accent2_color, set: (v) => { config.accent2_color = v; window.elementSdk.setConfig({ accent2_color: v }); } }
+          ],
+          borderables: [],
+          fontEditable: {
+            get: () => config.font_family || defaultConfig.font_family,
+            set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+          },
+          fontSizeable: {
+            get: () => config.font_size || defaultConfig.font_size,
+            set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
+          }
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['site_title', config.site_title || defaultConfig.site_title],
+          ['analogy_text', config.analogy_text || defaultConfig.analogy_text]
+        ])
+      });
+    }
+
+    // Intersection Observer for scroll animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('fade-up'); observer.unobserve(e.target); }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up-d1,.fade-up-d2,.fade-up-d3,.fade-up-d4,.fade-up-d5').forEach(el => observer.observe(el));
+
+    lucide.createIcons();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eac126b46cf0b2c',t:'MTc3NTkzMjMyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
